@@ -34,7 +34,18 @@ const ToolsConfig: React.FC = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setTools(data || []);
+      
+      // Transform the data to match our Tool interface
+      const transformedTools: Tool[] = (data || []).map(tool => ({
+        id: tool.id,
+        name: tool.name,
+        description: tool.description || '',
+        parameters: tool.parameters as ToolParameter[] || [],
+        isActive: tool.is_active,
+        script: tool.script,
+      }));
+      
+      setTools(transformedTools);
     } catch (error: any) {
       toast({
         title: 'Error loading tools',
@@ -66,9 +77,18 @@ const ToolsConfig: React.FC = () => {
 
     if (!isTemp && user) {
       try {
+        // Transform the updates to match the database schema
+        const dbUpdates = {
+          name: updates.name,
+          description: updates.description,
+          parameters: updates.parameters,
+          is_active: updates.isActive,
+          script: updates.script,
+        };
+
         const { error } = await supabase
           .from('tools')
-          .update(updates)
+          .update(dbUpdates)
           .eq('id', id);
 
         if (error) throw error;
@@ -86,23 +106,35 @@ const ToolsConfig: React.FC = () => {
     if (!user) return;
 
     try {
+      // Transform the tool to match the database schema
+      const dbTool = {
+        name: tool.name,
+        description: tool.description,
+        parameters: tool.parameters,
+        is_active: tool.isActive,
+        script: tool.script,
+        user_id: user.id,
+      };
+
       const { data, error } = await supabase
         .from('tools')
-        .insert([{
-          name: tool.name,
-          description: tool.description,
-          parameters: tool.parameters,
-          is_active: tool.isActive,
-          user_id: user.id,
-        }])
+        .insert([dbTool])
         .select()
         .single();
 
       if (error) throw error;
 
-      setTools(tools.map(t => 
-        t.id === tool.id ? { ...data, parameters: data.parameters || [] } : t
-      ));
+      // Transform the response back to match our Tool interface
+      const savedTool: Tool = {
+        id: data.id,
+        name: data.name,
+        description: data.description || '',
+        parameters: data.parameters || [],
+        isActive: data.is_active,
+        script: data.script,
+      };
+
+      setTools(tools.map(t => t.id === tool.id ? savedTool : t));
 
       toast({
         title: 'Tool saved',

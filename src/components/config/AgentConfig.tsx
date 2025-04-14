@@ -4,7 +4,7 @@ import { useAgents } from '@/contexts/AgentContext';
 import geminiService from '@/services/geminiService';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Trash2, Save } from 'lucide-react';
+import { Save, Trash2, PlusCircle } from 'lucide-react';
 import { AgentList } from './agent/AgentList';
 import { BasicInformation } from './agent/BasicInformation';
 import { KnowledgeBase } from './agent/KnowledgeBase';

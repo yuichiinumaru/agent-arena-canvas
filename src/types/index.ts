@@ -1,4 +1,3 @@
-
 // Main type definitions for the application
 
 export interface User {
@@ -35,6 +34,7 @@ export interface Tool {
   description: string;
   parameters: ToolParameter[];
   isActive: boolean;
+  script?: string;
 }
 
 export interface ToolParameter {
