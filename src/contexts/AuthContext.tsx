@@ -1,6 +1,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User } from '@/types';
+import { useToast } from '@/hooks/use-toast';
 
 interface AuthContextType {
   user: User | null;
@@ -23,6 +24,7 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const { toast } = useToast();
 
   useEffect(() => {
     // Check if user is already logged in via localStorage
@@ -52,11 +54,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     setUser(newUser);
     localStorage.setItem('user', JSON.stringify(newUser));
+    
+    // Show success toast
+    toast({
+      title: "Login Successful",
+      description: `Welcome, ${newUser.name}!`,
+      duration: 3000,
+    });
   };
 
   const logout = () => {
     setUser(null);
     localStorage.removeItem('user');
+    toast({
+      title: "Logged Out",
+      description: "You have been successfully logged out.",
+      duration: 3000,
+    });
   };
 
   return (
