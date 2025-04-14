@@ -2,25 +2,54 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { AgentProvider } from "@/contexts/AgentContext";
+import MainLayout from "@/components/layout/MainLayout";
+import LoginPage from "@/pages/LoginPage";
+import ChatPage from "@/pages/ChatPage";
+import ConfigPage from "@/pages/ConfigPage";
+import NotFound from "@/pages/NotFound";
+
+// Private route component to handle authentication
+const PrivateRoute = ({ element }: { element: React.ReactNode }) => {
+  const { isAuthenticated, isLoading } = useAuth();
+  
+  if (isLoading) {
+    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  }
+  
+  return isAuthenticated ? (
+    <MainLayout>{element}</MainLayout>
+  ) : (
+    <Navigate to="/login" replace />
+  );
+};
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+    <AuthProvider>
+      <AgentProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/login" element={<LoginPage />} />
+              
+              <Route path="/" element={<PrivateRoute element={<ChatPage />} />} />
+              <Route path="/agents" element={<PrivateRoute element={<ConfigPage />} />} />
+              <Route path="/database" element={<PrivateRoute element={<ConfigPage />} />} />
+              <Route path="/settings" element={<PrivateRoute element={<ConfigPage />} />} />
+              
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AgentProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 
