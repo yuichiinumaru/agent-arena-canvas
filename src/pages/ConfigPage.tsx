@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AgentConfig from '@/components/config/AgentConfig';
 import DatabaseConfig from '@/components/config/DatabaseConfig';
 import ModelConfig from '@/components/config/ModelConfig';
+import ToolsConfig from '@/components/config/ToolsConfig';
 
 const ConfigPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('agents');
@@ -14,8 +15,9 @@ const ConfigPage: React.FC = () => {
         <div className="border-b sticky top-0 bg-white z-10">
           <div className="container py-4">
             <h1 className="text-2xl font-bold mb-4">Configuration</h1>
-            <TabsList className="grid grid-cols-3 w-full max-w-md">
+            <TabsList className="grid w-full max-w-2xl grid-cols-4">
               <TabsTrigger value="agents">Agents</TabsTrigger>
+              <TabsTrigger value="tools">Tools</TabsTrigger>
               <TabsTrigger value="database">Database</TabsTrigger>
               <TabsTrigger value="models">Models</TabsTrigger>
             </TabsList>
@@ -24,6 +26,10 @@ const ConfigPage: React.FC = () => {
         
         <TabsContent value="agents" className="h-full">
           <AgentConfig />
+        </TabsContent>
+        
+        <TabsContent value="tools" className="h-full">
+          <ToolsConfig />
         </TabsContent>
         
         <TabsContent value="database" className="h-full">
