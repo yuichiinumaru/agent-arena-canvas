@@ -5,44 +5,44 @@
 
 @layer base {
   :root {
-    --background: 0 0% 0%;
-    --foreground: 0 0% 98%;
+    --background: 0 0% 0%; /* Black background */
+    --foreground: 0 84% 60%; /* Red foreground */
     
-    --card: 0 0% 2%;
-    --card-foreground: 0 0% 98%;
+    --card: 0 0% 2%; /* Very dark background for cards */
+    --card-foreground: 0 84% 60%; /* Red text on cards */
     
-    --popover: 0 0% 3%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 0 0% 3%; /* Very dark popover background */
+    --popover-foreground: 0 84% 60%; /* Red text on popovers */
     
-    --primary: 0 84% 60%;
-    --primary-foreground: 0 0% 98%;
+    --primary: 0 84% 60%; /* Red primary color */
+    --primary-foreground: 0 0% 98%; /* White text on red background */
     
-    --secondary: 0 0% 12%;
-    --secondary-foreground: 0 0% 98%;
+    --secondary: 0 0% 12%; /* Dark secondary background */
+    --secondary-foreground: 0 84% 60%; /* Red text on secondary */
     
-    --muted: 0 0% 12%;
-    --muted-foreground: 0 0% 63.9%;
+    --muted: 0 0% 12%; /* Dark muted background */
+    --muted-foreground: 0 84% 30%; /* Darker red for muted text */
     
-    --accent: 0 84% 60%;
-    --accent-foreground: 0 0% 98%;
+    --accent: 0 84% 60%; /* Red accent */
+    --accent-foreground: 0 0% 98%; /* White text on accent */
     
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: 0 84% 60%; /* Red destructive color */
+    --destructive-foreground: 0 0% 98%; /* White text on destructive */
     
-    --border: 0 0% 12%;
-    --input: 0 0% 12%;
-    --ring: 0 84% 60%;
+    --border: 0 84% 20%; /* Dark red border */
+    --input: 0 0% 12%; /* Dark input background */
+    --ring: 0 84% 60%; /* Red ring/focus */
 
     --radius: 0.5rem;
 
-    --sidebar-background: 0 0% 2%;
-    --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 0 84% 60%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 0 0% 12%;
-    --sidebar-accent-foreground: 0 0% 98%; 
-    --sidebar-border: 0 0% 12%;
-    --sidebar-ring: 0 84% 60%;
+    --sidebar-background: 0 0% 2%; /* Very dark sidebar background */
+    --sidebar-foreground: 0 84% 60%; /* Red sidebar text */
+    --sidebar-primary: 0 84% 60%; /* Red sidebar primary */
+    --sidebar-primary-foreground: 0 0% 98%; /* White text on sidebar primary */
+    --sidebar-accent: 0 0% 12%; /* Dark sidebar accent */
+    --sidebar-accent-foreground: 0 84% 60%; /* Red text on sidebar accent */
+    --sidebar-border: 0 84% 20%; /* Dark red sidebar border */
+    --sidebar-ring: 0 84% 60%; /* Red sidebar ring/focus */
   }
 }
 
