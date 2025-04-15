@@ -5,44 +5,40 @@
 
 @layer base {
   :root {
-    --background: 0 0% 3%; /* Very dark black background */
-    --foreground: 0 84% 60%; /* Red foreground */
-    
-    --card: 0 0% 5%; /* Very dark background for cards */
-    --card-foreground: 0 84% 60%; /* Red text on cards */
-    
-    --popover: 0 0% 5%; /* Very dark popover background */
-    --popover-foreground: 0 84% 60%; /* Red text on popovers */
-    
-    --primary: 0 84% 60%; /* Red primary color */
-    --primary-foreground: 0 0% 98%; /* White text on red background */
-    
-    --secondary: 0 0% 12%; /* Dark secondary background */
-    --secondary-foreground: 0 84% 60%; /* Red text on secondary */
-    
-    --muted: 0 0% 12%; /* Dark muted background */
-    --muted-foreground: 0 84% 40%; /* Darker red for muted text */
-    
-    --accent: 0 84% 60%; /* Red accent */
-    --accent-foreground: 0 0% 98%; /* White text on accent */
-    
-    --destructive: 0 84% 60%; /* Red destructive color */
-    --destructive-foreground: 0 0% 98%; /* White text on destructive */
-    
-    --border: 0 84% 20%; /* Dark red border */
-    --input: 0 0% 12%; /* Dark input background */
-    --ring: 0 84% 60%; /* Red ring/focus */
+    --font-sans: "Inter", sans-serif;
 
+    --background: 0 0% 7%; /* Black with slight tint */
+    --foreground: 0 0% 98%; /* Off-white for text */
+    
+    --muted: 0 0% 15%; /* Dark gray */
+    --muted-foreground: 0 0% 75%; /* Light gray */
+    
+    --accent: 0 75% 45%; /* Muted red */
+    --accent-foreground: 0 0% 98%; /* Off-white */
+    
+    --card: 0 0% 9%; /* Slightly lighter than background */
+    --card-foreground: 0 0% 98%; /* Off-white */
+    
+    --input: 0 0% 12%; /* Slightly darker than card */
+    --ring: 0 75% 50%; /* Red */
+    
+    --border: 0 0% 20%; /* Dark gray for borders */
+    
+    --sidebar: 0 0% 5%; /* Darker than background */
+    --sidebar-foreground: 0 0% 90%; /* Light gray */
+    --sidebar-accent: 0 75% 45%; /* Muted red */
+    --sidebar-accent-foreground: 0 0% 98%; /* Off-white */
+
+    --primary: 0 85% 50%; /* Bright red */
+    --primary-foreground: 0 0% 98%; /* Off-white */
+    
+    --secondary: 0 0% 12%; /* Darker gray */
+    --secondary-foreground: 0 0% 98%; /* Off-white */
+    
+    --destructive: 0 84% 60%; /* Slightly brighter red */
+    --destructive-foreground: 0 0% 98%; /* Off-white */
+    
     --radius: 0.5rem;
-
-    --sidebar-background: 0 0% 5%; /* Very dark sidebar background */
-    --sidebar-foreground: 0 84% 60%; /* Red sidebar text */
-    --sidebar-primary: 0 84% 60%; /* Red sidebar primary */
-    --sidebar-primary-foreground: 0 0% 98%; /* White text on sidebar primary */
-    --sidebar-accent: 0 0% 12%; /* Dark sidebar accent */
-    --sidebar-accent-foreground: 0 84% 60%; /* Red text on sidebar accent */
-    --sidebar-border: 0 84% 20%; /* Dark red sidebar border */
-    --sidebar-ring: 0 84% 60%; /* Red sidebar ring/focus */
   }
 }
 
@@ -54,43 +50,54 @@
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
-  
-  /* Fix for white spots in buttons and various UI elements */
-  .bg-slate-800 {
-    @apply bg-background;
-  }
-  .bg-slate-900 {
-    @apply bg-sidebar;
-  }
-  .text-white {
-    @apply text-primary-foreground;
-  }
-  .text-slate-300 {
-    @apply text-sidebar-foreground;
-  }
-  .bg-blue-600 {
-    @apply bg-primary;
-  }
-  .hover\:bg-slate-800:hover {
-    @apply hover:bg-secondary;
-  }
-  
-  /* Fix input and form elements */
-  input, textarea, select {
-    @apply bg-input text-foreground border-border;
-  }
-  
-  /* Fix for tabs */
-  [role="tablist"] {
-    @apply bg-background border-border;
-  }
-  
-  [role="tab"] {
-    @apply text-foreground bg-background data-[state=active]:bg-primary data-[state=active]:text-primary-foreground;
-  }
-  
-  /* Configuration tabs */
-  .Configuration button[role="tab"] {
-    @apply data-[state=active]:bg-primary data-[state=active]:text-primary-foreground;
-  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--background));
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground));
+}
+
+/* Input focus style */
+input:focus, textarea:focus, select:focus {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+/* Button hover effects */
+.button-hover-effect {
+  transition: all 0.2s ease-in-out;
+}
+
+.button-hover-effect:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Ensure all buttons have the correct color */
+.button, button, [type="button"], [type="reset"], [type="submit"] {
+  @apply bg-primary text-primary-foreground hover:bg-primary/90;
+}
+
+/* Ensure all inputs have the correct styling */
+input, textarea, select {
+  @apply bg-input text-foreground border border-border rounded;
+}
+
+/* Card styling */
+.card {
+  @apply bg-card text-card-foreground border border-border rounded-lg;
 }

@@ -1,148 +1,96 @@
 
-import { GoogleGenerativeAI } from '@google/generative-ai';
-import { Agent, KnowledgeItem, Tool } from '@/types';
+import { GoogleGenerativeAI, GenerativeModel, CountTokensRequest } from '@google/generative-ai';
 
-// This service will handle interactions with Google's Generative AI models
-export class GeminiService {
-  private api: GoogleGenerativeAI | null = null;
-  private _apiKey: string = '';
+class GeminiService {
+  private modelInstance: GenerativeModel | null = null;
+  private apiKey: string = '';
 
-  constructor(apiKey?: string) {
-    if (apiKey) {
-      this.setApiKey(apiKey);
+  setApiKey(apiKey: string): void {
+    this.apiKey = apiKey;
+    this.modelInstance = null; // Reset the model instance when the API key changes
+  }
+
+  private getModel(modelName: string = 'gemini-pro'): GenerativeModel {
+    if (!this.apiKey) {
+      throw new Error('API key not set. Please configure your Google API key in Settings.');
     }
-  }
 
-  setApiKey(apiKey: string) {
-    this._apiKey = apiKey;
-    this.api = new GoogleGenerativeAI(apiKey);
-  }
-  
-  getApiKey(): string {
-    return this._apiKey;
-  }
-  
-  // Test connection with a provided API key without changing the current one
-  async testConnection(apiKey: string): Promise<boolean> {
-    try {
-      const tempApi = new GoogleGenerativeAI(apiKey);
-      const model = tempApi.getGenerativeModel({ model: "gemini-1.0-pro" });
-      const result = await model.countTokens("This is a test message");
-      return true;
-    } catch (error) {
-      console.error('Test connection failed:', error);
-      throw error;
+    if (!this.modelInstance) {
+      const genAI = new GoogleGenerativeAI(this.apiKey);
+      this.modelInstance = genAI.getGenerativeModel({ model: modelName });
     }
+
+    return this.modelInstance;
   }
 
-  // Create a system prompt for the agent based on its instructions and knowledge base
-  private createAgentSystemPrompt(agent: Agent): string {
-    const toolsDescription = agent.tools.length > 0 
-      ? `\n\nYou have access to the following tools:\n${agent.tools.map(tool => 
-          `- ${tool.name}: ${tool.description}\n  Parameters: ${tool.parameters.map(p => 
-            `${p.name} (${p.type}${p.required ? ', required' : ''}): ${p.description}`
-          ).join(', ')}`
-        ).join('\n')}`
-      : '';
-
-    const knowledgeBaseDescription = agent.knowledgeBase.length > 0
-      ? `\n\nYou have access to the following knowledge base:\n${agent.knowledgeBase.map(item => 
-          `- ${item.name}`
-        ).join('\n')}`
-      : '';
-
-    return `You are ${agent.name}. ${agent.description}
-    
-Instructions: ${agent.instructions}
-${toolsDescription}
-${knowledgeBaseDescription}
-
-Respond in a conversational and helpful manner. If you're asked about something that's not in your knowledge, be honest about it. When answering, use markdown formatting where appropriate.`;
-  }
-
-  // Format the conversation history for the API
-  private formatConversationHistory(messages: Array<{role: 'user' | 'agent' | 'system', name?: string, content: string}>) {
-    return messages.map(message => ({
-      role: message.role === 'agent' ? 'model' : message.role,
-      parts: [{ text: message.content }],
-    }));
-  }
-
-  // Get knowledge context from the agent's knowledge base
-  private getKnowledgeContext(relevantItems: KnowledgeItem[]): string {
-    return relevantItems.map(item => 
-      `--- ${item.name} ---\n${item.content}\n---\n`
-    ).join('\n');
-  }
-
-  // Main method to generate a response
   async generateResponse(
-    agent: Agent, 
-    messageContent: string, 
-    conversationHistory: Array<{role: 'user' | 'agent' | 'system', name?: string, content: string}>,
-    relevantKnowledge: KnowledgeItem[] = []
-  ) {
-    if (!this.api || !this._apiKey) {
-      throw new Error('API key not set. Please set a valid Google Generative AI API key.');
-    }
-
+    prompt: string, 
+    systemInstruction: string = '',
+    modelName: string = 'gemini-pro'
+  ): Promise<string> {
     try {
-      const model = this.api.getGenerativeModel({ model: "gemini-2.5-pro-preview" });
+      const model = this.getModel(modelName);
       
-      // Create the system prompt
-      const systemPrompt = this.createAgentSystemPrompt(agent);
-      
-      // Add knowledge context if relevant
-      const knowledgeContext = relevantKnowledge.length > 0 
-        ? this.getKnowledgeContext(relevantKnowledge)
-        : '';
-
-      const finalMessageContent = knowledgeContext 
-        ? `${messageContent}\n\nHere is some relevant information to help with your response:\n${knowledgeContext}`
-        : messageContent;
-      
-      // Prepare the chat
-      const chat = model.startChat({
-        history: this.formatConversationHistory([
-          { role: 'system', content: systemPrompt },
-          ...conversationHistory
-        ]),
+      const result = await model.generateContent({
+        contents: [
+          { role: 'user', parts: [{ text: prompt }] }
+        ],
         generationConfig: {
           temperature: 0.7,
+          topK: 40,
           topP: 0.95,
-          topK: 64,
+          maxOutputTokens: 8192,
         },
+        safetySettings: [
+          {
+            category: 'HARM_CATEGORY_HARASSMENT',
+            threshold: 'BLOCK_MEDIUM_AND_ABOVE'
+          },
+          {
+            category: 'HARM_CATEGORY_HATE_SPEECH',
+            threshold: 'BLOCK_MEDIUM_AND_ABOVE'
+          },
+          {
+            category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+            threshold: 'BLOCK_MEDIUM_AND_ABOVE'
+          },
+          {
+            category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
+            threshold: 'BLOCK_MEDIUM_AND_ABOVE'
+          }
+        ],
       });
 
-      // Get the response
-      const result = await chat.sendMessage(finalMessageContent);
-      const response = result.response;
-      const text = response.text();
-      
-      return text;
+      return result.response.text();
     } catch (error) {
       console.error('Error generating response:', error);
       throw error;
     }
   }
 
-  // Method to count tokens in the instructions
   async countTokens(text: string): Promise<number> {
-    if (!this.api || !this._apiKey) {
-      return Math.round(text.length / 4); // Rough estimate if API not available
-    }
-
     try {
-      const model = this.api.getGenerativeModel({ model: "gemini-2.5-pro-preview" });
-      const result = await model.countTokens(text);
+      if (!this.apiKey) {
+        // If no API key is set, use a rough estimate
+        return Math.ceil(text.length / 4);
+      }
+
+      const genAI = new GoogleGenerativeAI(this.apiKey);
+      const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+      
+      const request: CountTokensRequest = {
+        contents: [{ role: 'user', parts: [{ text }] }]
+      };
+      
+      const result = await model.countTokens(request);
       return result.totalTokens;
     } catch (error) {
       console.error('Error counting tokens:', error);
-      return Math.round(text.length / 4); // Fallback to rough estimate
+      // Fallback to a rough estimate
+      return Math.ceil(text.length / 4);
     }
   }
 }
 
-// Singleton instance
 const geminiService = new GeminiService();
 export default geminiService;

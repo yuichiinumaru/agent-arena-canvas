@@ -29,7 +29,7 @@ export const AgentList: React.FC<AgentListProps> = ({
       
       <ScrollArea className="flex-1">
         <div className="space-y-2">
-          {agents.map(agent => (
+          {agents.filter(agent => agent.isActive).map(agent => (
             <div
               key={agent.id}
               className={`p-2 rounded cursor-pointer flex items-center ${

@@ -1,6 +1,9 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Agent, Conversation, Message, Tool, KnowledgeItem, DatabaseConfig, ModelConfig } from '@/types';
 import { useAuth } from './AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import geminiService from '@/services/geminiService';
+import { useToast } from '@/hooks/use-toast';
 
 interface AgentContextType {
   agents: Agent[];
@@ -291,6 +294,7 @@ export const useAgents = () => useContext(AgentContext);
 
 export const AgentProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [agents, setAgents] = useState<Agent[]>([]);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
@@ -300,14 +304,12 @@ export const AgentProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     databases: [],
   });
 
-  // Load stored agents and conversations from localStorage
   useEffect(() => {
     if (user) {
       const storedAgents = localStorage.getItem('agents');
       const storedConversations = localStorage.getItem('conversations');
       const storedConfig = localStorage.getItem('appConfig');
 
-      // If there are no stored agents, use the predefined ones
       if (!storedAgents || JSON.parse(storedAgents).length === 0) {
         setAgents(predefinedAgents);
       } else {
@@ -324,7 +326,6 @@ export const AgentProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           const parsedConversations = JSON.parse(storedConversations);
           setConversations(parsedConversations);
           
-          // Set the most recent conversation as current
           if (parsedConversations.length > 0) {
             const mostRecent = parsedConversations.sort((a: Conversation, b: Conversation) => b.updatedAt - a.updatedAt)[0];
             setCurrentConversationId(mostRecent.id);
@@ -336,7 +337,13 @@ export const AgentProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
       if (storedConfig) {
         try {
-          setAppConfig(JSON.parse(storedConfig));
+          const config = JSON.parse(storedConfig);
+          setAppConfig(config);
+          
+          const defaultModel = config.models.find(m => m.isDefault);
+          if (defaultModel && defaultModel.apiKey) {
+            geminiService.setApiKey(defaultModel.apiKey);
+          }
         } catch (e) {
           console.error('Failed to parse stored config', e);
         }
@@ -344,7 +351,6 @@ export const AgentProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, [user]);
 
-  // Save to localStorage when state changes
   useEffect(() => {
     if (user) {
       localStorage.setItem('agents', JSON.stringify(agents));
@@ -352,6 +358,78 @@ export const AgentProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       localStorage.setItem('appConfig', JSON.stringify(appConfig));
     }
   }, [agents, conversations, appConfig, user]);
+
+  const saveConversationsToSupabase = async () => {
+    if (!user) return;
+    
+    try {
+      for (const conversation of conversations) {
+        const { error } = await supabase
+          .from('conversations')
+          .upsert({
+            id: conversation.id,
+            title: conversation.title,
+            participants: conversation.participants,
+            created_at: new Date(conversation.createdAt).toISOString(),
+            updated_at: new Date(conversation.updatedAt).toISOString(),
+            user_id: user.id,
+            data: { messages: conversation.messages }
+          });
+          
+        if (error) {
+          console.error('Error saving conversation to Supabase:', error);
+        }
+      }
+    } catch (error) {
+      console.error('Error in saveConversationsToSupabase:', error);
+    }
+  };
+
+  const loadConversationsFromSupabase = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('conversations')
+        .select('*')
+        .eq('user_id', user.id);
+        
+      if (error) {
+        console.error('Error loading conversations from Supabase:', error);
+        return;
+      }
+      
+      if (data && data.length > 0) {
+        const loadedConversations: Conversation[] = data.map(item => ({
+          id: item.id,
+          title: item.title,
+          participants: item.participants,
+          createdAt: new Date(item.created_at).getTime(),
+          updatedAt: new Date(item.updated_at).getTime(),
+          messages: item.data?.messages || []
+        }));
+        
+        setConversations(loadedConversations);
+        
+        const mostRecent = loadedConversations.sort((a, b) => b.updatedAt - a.updatedAt)[0];
+        setCurrentConversationId(mostRecent.id);
+      }
+    } catch (error) {
+      console.error('Error in loadConversationsFromSupabase:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (user) {
+      loadConversationsFromSupabase();
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (user && conversations.length > 0) {
+      saveConversationsToSupabase();
+    }
+  }, [conversations, user]);
 
   const addAgent = (agentData: Omit<Agent, 'id'>) => {
     const newAgent: Agent = {
@@ -372,22 +450,75 @@ export const AgentProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setAgents((prev) => prev.filter((agent) => agent.id !== id));
   };
 
-  const addKnowledgeItem = (agentId: string, item: Omit<KnowledgeItem, 'id'>) => {
-    const newItem: KnowledgeItem = {
-      id: `knowledge-${Date.now()}`,
-      ...item,
-    };
+  const addKnowledgeItem = async (agentId: string, item: Omit<KnowledgeItem, 'id'>) => {
+    if (!user) return;
     
-    setAgents((prev) => 
-      prev.map((agent) => 
-        agent.id === agentId 
-          ? { ...agent, knowledgeBase: [...agent.knowledgeBase, newItem] } 
-          : agent
-      )
-    );
+    try {
+      const { data, error } = await supabase
+        .from('knowledge_items')
+        .insert({
+          name: item.name,
+          content: item.content,
+          type: item.type,
+          file_path: item.type === 'file' ? item.content : null,
+          file_type: item.type === 'file' ? 'text/plain' : null,
+          file_size: item.type === 'file' && item.size ? item.size : null,
+          user_id: user.id
+        })
+        .select('id')
+        .single();
+        
+      if (error) {
+        console.error('Error saving knowledge item to Supabase:', error);
+        throw error;
+      }
+      
+      const newItem: KnowledgeItem = {
+        id: data.id,
+        ...item,
+      };
+      
+      setAgents((prev) => 
+        prev.map((agent) => 
+          agent.id === agentId 
+            ? { ...agent, knowledgeBase: [...agent.knowledgeBase, newItem] } 
+            : agent
+        )
+      );
+    } catch (error) {
+      console.error('Error in addKnowledgeItem:', error);
+      
+      const newItem: KnowledgeItem = {
+        id: `knowledge-${Date.now()}`,
+        ...item,
+      };
+      
+      setAgents((prev) => 
+        prev.map((agent) => 
+          agent.id === agentId 
+            ? { ...agent, knowledgeBase: [...agent.knowledgeBase, newItem] } 
+            : agent
+        )
+      );
+    }
   };
 
-  const removeKnowledgeItem = (agentId: string, itemId: string) => {
+  const removeKnowledgeItem = async (agentId: string, itemId: string) => {
+    try {
+      if (itemId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/)) {
+        const { error } = await supabase
+          .from('knowledge_items')
+          .delete()
+          .eq('id', itemId);
+          
+        if (error) {
+          console.error('Error removing knowledge item from Supabase:', error);
+        }
+      }
+    } catch (error) {
+      console.error('Error in removeKnowledgeItem:', error);
+    }
+    
     setAgents((prev) => 
       prev.map((agent) => 
         agent.id === agentId 
@@ -397,22 +528,80 @@ export const AgentProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     );
   };
 
-  const addTool = (agentId: string, tool: Omit<Tool, 'id'>) => {
-    const newTool: Tool = {
-      id: `tool-${Date.now()}`,
-      ...tool,
-    };
+  const addTool = async (agentId: string, tool: Omit<Tool, 'id'>) => {
+    if (!user) return;
     
-    setAgents((prev) => 
-      prev.map((agent) => 
-        agent.id === agentId 
-          ? { ...agent, tools: [...agent.tools, newTool] } 
-          : agent
-      )
-    );
+    try {
+      const { data, error } = await supabase
+        .from('tools')
+        .insert({
+          name: tool.name,
+          description: tool.description,
+          parameters: tool.parameters,
+          is_active: tool.isActive,
+          script: tool.script,
+          user_id: user.id
+        })
+        .select('id')
+        .single();
+        
+      if (error) {
+        console.error('Error saving tool to Supabase:', error);
+        throw error;
+      }
+      
+      const newTool: Tool = {
+        id: data.id,
+        ...tool,
+      };
+      
+      setAgents((prev) => 
+        prev.map((agent) => 
+          agent.id === agentId 
+            ? { ...agent, tools: [...agent.tools, newTool] } 
+            : agent
+        )
+      );
+    } catch (error) {
+      console.error('Error in addTool:', error);
+      
+      const newTool: Tool = {
+        id: `tool-${Date.now()}`,
+        ...tool,
+      };
+      
+      setAgents((prev) => 
+        prev.map((agent) => 
+          agent.id === agentId 
+            ? { ...agent, tools: [...agent.tools, newTool] } 
+            : agent
+        )
+      );
+    }
   };
 
-  const updateTool = (agentId: string, toolId: string, updates: Partial<Tool>) => {
+  const updateTool = async (agentId: string, toolId: string, updates: Partial<Tool>) => {
+    try {
+      if (toolId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/)) {
+        const { error } = await supabase
+          .from('tools')
+          .update({
+            name: updates.name,
+            description: updates.description,
+            parameters: updates.parameters,
+            is_active: updates.isActive,
+            script: updates.script
+          })
+          .eq('id', toolId);
+          
+        if (error) {
+          console.error('Error updating tool in Supabase:', error);
+        }
+      }
+    } catch (error) {
+      console.error('Error in updateTool:', error);
+    }
+    
     setAgents((prev) => 
       prev.map((agent) => 
         agent.id === agentId 
@@ -427,7 +616,22 @@ export const AgentProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     );
   };
 
-  const removeTool = (agentId: string, toolId: string) => {
+  const removeTool = async (agentId: string, toolId: string) => {
+    try {
+      if (toolId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/)) {
+        const { error } = await supabase
+          .from('tools')
+          .delete()
+          .eq('id', toolId);
+          
+        if (error) {
+          console.error('Error removing tool from Supabase:', error);
+        }
+      }
+    } catch (error) {
+      console.error('Error in removeTool:', error);
+    }
+    
     setAgents((prev) => 
       prev.map((agent) => 
         agent.id === agentId 
@@ -438,6 +642,8 @@ export const AgentProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const createConversation = (agentIds: string[]) => {
+    if (!user) throw new Error('User not authenticated');
+    
     const selectedAgents = agents.filter(agent => agentIds.includes(agent.id));
     const agentNames = selectedAgents.map(agent => agent.name).join(', ');
     
@@ -445,7 +651,7 @@ export const AgentProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       id: `conv-${Date.now()}`,
       title: `Chat with ${agentNames}`,
       participants: {
-        userId: user?.id,
+        userId: user.id,
         agentIds,
       },
       createdAt: Date.now(),
@@ -455,6 +661,22 @@ export const AgentProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     
     setConversations((prev) => [...prev, newConversation]);
     setCurrentConversationId(newConversation.id);
+    
+    supabase
+      .from('conversations')
+      .insert({
+        id: newConversation.id,
+        title: newConversation.title,
+        participants: newConversation.participants,
+        created_at: new Date(newConversation.createdAt).toISOString(),
+        updated_at: new Date(newConversation.updatedAt).toISOString(),
+        user_id: user.id,
+        data: { messages: [] }
+      })
+      .then(({ error }) => {
+        if (error) console.error('Error saving new conversation to Supabase:', error);
+      });
+    
     return newConversation;
   };
 
@@ -464,84 +686,176 @@ export const AgentProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setIsProcessing(true);
     
     try {
+      const currentConversation = conversations.find(c => c.id === currentConversationId);
+      if (!currentConversation) throw new Error('Conversation not found');
+
+      const defaultModel = appConfig.models.find(m => m.isDefault);
+      if (!defaultModel || !defaultModel.apiKey) {
+        toast({
+          title: 'API Key Missing',
+          description: 'Please set your Google API key in the Models settings.',
+          variant: 'destructive',
+        });
+        setIsProcessing(false);
+        return;
+      }
+      
+      geminiService.setApiKey(defaultModel.apiKey);
+
       const newMessage: Message = {
         id: `msg-${Date.now()}`,
         conversationId: currentConversationId,
         content,
         sender: {
           id: user.id,
-          name: user.name,
+          name: user.name || 'User',
           type: 'user',
-          avatar: user.avatar,
+          avatar: user.avatar || '',
         },
         mentions,
         timestamp: Date.now(),
         isTask,
         assignedTo: isTask 
-          ? mentions.length > 0 ? mentions : conversations.find(c => c.id === currentConversationId)?.participants.agentIds || []
+          ? mentions.length > 0 ? mentions : currentConversation.participants.agentIds
           : mentions,
       };
 
-      // Update the conversation with the new message
+      const updatedConversation = {
+        ...currentConversation,
+        messages: [...currentConversation.messages, newMessage],
+        updatedAt: Date.now(),
+      };
+      
       setConversations((prev) =>
         prev.map((conv) =>
-          conv.id === currentConversationId
-            ? {
-                ...conv,
-                messages: [...conv.messages, newMessage],
-                updatedAt: Date.now(),
-              }
-            : conv
+          conv.id === currentConversationId ? updatedConversation : conv
         )
       );
 
-      // Process agent responses
-      // In a real implementation, this would call the Gemini API for each agent
-      // For now, we'll just simulate a response after a delay
-      const currentConversation = conversations.find(c => c.id === currentConversationId);
-      const respondingAgents = currentConversation?.participants.agentIds.filter(
+      const respondingAgents = currentConversation.participants.agentIds.filter(
         id => newMessage.assignedTo.includes(id) || newMessage.assignedTo.length === 0
-      ) || [];
+      );
 
-      // Generate responses from the agents (simulated)
       for (const agentId of respondingAgents) {
         const agent = agents.find(a => a.id === agentId);
-        if (!agent) continue;
+        if (!agent || !agent.isActive) continue;
 
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API delay
+        const conversationHistory = currentConversation.messages
+          .map(msg => {
+            const sender = msg.sender.type === 'user' ? 'User' : msg.sender.name;
+            return `${sender}: ${msg.content}`;
+          })
+          .join('\n\n');
 
-        const agentResponse: Message = {
-          id: `msg-${Date.now()}-${agentId}`,
-          conversationId: currentConversationId,
-          content: `[${agent.name}] - This is a simulated response. In the real implementation, this would be a response from the Gemini API using the agent's instructions and knowledge base.`,
-          sender: {
-            id: agentId,
-            name: agent.name,
-            type: 'agent',
-            avatar: agent.avatar,
-          },
-          mentions: [],
-          timestamp: Date.now(),
-          isTask: false,
-          assignedTo: [],
-          inReplyTo: newMessage.id,
-        };
+        const prompt = `
+You are ${agent.name}, with the following instructions:
+${agent.instructions}
 
-        // Add agent response to conversation
-        setConversations((prev) =>
-          prev.map((conv) =>
-            conv.id === currentConversationId
-              ? {
-                  ...conv,
-                  messages: [...conv.messages, agentResponse],
-                  updatedAt: Date.now(),
-                }
-              : conv
-          )
-        );
+Conversation history:
+${conversationHistory}
+
+Current message from user:
+${content}
+
+Please provide a helpful and appropriate response as ${agent.name}. Maintain the persona and capabilities defined in your instructions.
+`;
+
+        try {
+          const response = await geminiService.generateResponse(prompt, '', agent.model);
+
+          const agentResponse: Message = {
+            id: `msg-${Date.now()}-${agentId}`,
+            conversationId: currentConversationId,
+            content: response,
+            sender: {
+              id: agentId,
+              name: agent.name,
+              type: 'agent',
+              avatar: agent.avatar,
+            },
+            mentions: [],
+            timestamp: Date.now(),
+            isTask: false,
+            assignedTo: [],
+            inReplyTo: newMessage.id,
+          };
+
+          const updatedConvWithResponse = {
+            ...updatedConversation,
+            messages: [...updatedConversation.messages, agentResponse],
+            updatedAt: Date.now(),
+          };
+          
+          setConversations((prev) =>
+            prev.map((conv) =>
+              conv.id === currentConversationId ? updatedConvWithResponse : conv
+            )
+          );
+          
+          updatedConversation.messages.push(agentResponse);
+          updatedConversation.updatedAt = Date.now();
+        } catch (error) {
+          console.error(`Error generating response for agent ${agent.name}:`, error);
+          
+          const errorResponse: Message = {
+            id: `msg-${Date.now()}-${agentId}-error`,
+            conversationId: currentConversationId,
+            content: `Error generating response: ${error instanceof Error ? error.message : 'Unknown error'}\n\nPlease check your API key and try again.`,
+            sender: {
+              id: agentId,
+              name: agent.name,
+              type: 'agent',
+              avatar: agent.avatar,
+            },
+            mentions: [],
+            timestamp: Date.now(),
+            isTask: false,
+            assignedTo: [],
+            inReplyTo: newMessage.id,
+          };
+          
+          const updatedConvWithError = {
+            ...updatedConversation,
+            messages: [...updatedConversation.messages, errorResponse],
+            updatedAt: Date.now(),
+          };
+          
+          setConversations((prev) =>
+            prev.map((conv) =>
+              conv.id === currentConversationId ? updatedConvWithError : conv
+            )
+          );
+          
+          updatedConversation.messages.push(errorResponse);
+          updatedConversation.updatedAt = Date.now();
+          
+          toast({
+            title: `Error with ${agent.name}`,
+            description: error instanceof Error ? error.message : 'Unknown error',
+            variant: 'destructive',
+          });
+        }
+      }
+      
+      const { error } = await supabase
+        .from('conversations')
+        .update({
+          updated_at: new Date(updatedConversation.updatedAt).toISOString(),
+          data: { messages: updatedConversation.messages }
+        })
+        .eq('id', currentConversationId);
+        
+      if (error) {
+        console.error('Error updating conversation in Supabase:', error);
       }
     } catch (error) {
       console.error('Error sending message:', error);
+      
+      toast({
+        title: 'Error sending message',
+        description: error instanceof Error ? error.message : 'An unknown error occurred',
+        variant: 'destructive',
+      });
     } finally {
       setIsProcessing(false);
     }
@@ -549,6 +863,11 @@ export const AgentProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const updateModelConfig = (models: ModelConfig[]) => {
     setAppConfig(prev => ({ ...prev, models }));
+    
+    const defaultModel = models.find(m => m.isDefault);
+    if (defaultModel && defaultModel.apiKey) {
+      geminiService.setApiKey(defaultModel.apiKey);
+    }
   };
 
   const updateDatabaseConfig = (databases: DatabaseConfig[]) => {
