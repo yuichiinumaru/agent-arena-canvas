@@ -8,7 +8,8 @@ import {
   LogOut, 
   Users, 
   Database, 
-  BrainCircuit
+  BrainCircuit,
+  Wrench
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 
@@ -85,6 +86,19 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 >
                   <Users size={20} />
                   <span className="hidden md:inline-block">Agents</span>
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/tools"
+                  className={`flex items-center space-x-2 p-3 rounded-md transition-colors ${
+                    isActive('/tools') 
+                      ? 'bg-blue-600 text-white' 
+                      : 'text-slate-300 hover:bg-slate-800'
+                  }`}
+                >
+                  <Wrench size={20} />
+                  <span className="hidden md:inline-block">Tools</span>
                 </Link>
               </li>
               <li>

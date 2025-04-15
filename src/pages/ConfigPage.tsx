@@ -1,13 +1,27 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AgentConfig from '@/components/config/AgentConfig';
 import DatabaseConfig from '@/components/config/DatabaseConfig';
 import ModelConfig from '@/components/config/ModelConfig';
 import ToolsConfig from '@/components/config/ToolsConfig';
+import { useLocation } from 'react-router-dom';
 
-const ConfigPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState('agents');
+interface ConfigPageProps {
+  defaultTab?: 'agents' | 'tools' | 'database' | 'models';
+}
+
+const ConfigPage: React.FC<ConfigPageProps> = ({ defaultTab = 'agents' }) => {
+  const [activeTab, setActiveTab] = useState(defaultTab);
+  const location = useLocation();
+  
+  // Update active tab based on route
+  useEffect(() => {
+    if (location.pathname === '/agents') setActiveTab('agents');
+    else if (location.pathname === '/tools') setActiveTab('tools');
+    else if (location.pathname === '/database') setActiveTab('database');
+    else if (location.pathname === '/settings') setActiveTab('models');
+  }, [location]);
   
   return (
     <div className="h-full overflow-y-auto">

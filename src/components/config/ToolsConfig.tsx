@@ -40,7 +40,25 @@ const ToolsConfig: React.FC = () => {
         id: tool.id,
         name: tool.name,
         description: tool.description || '',
-        parameters: tool.parameters as ToolParameter[] || [],
+        parameters: Array.isArray(tool.parameters) 
+          ? tool.parameters.map(p => {
+              if (typeof p === 'object' && p !== null) {
+                return {
+                  name: p.name || '',
+                  type: (p.type as 'string' | 'number' | 'boolean' | 'array' | 'object') || 'string',
+                  description: p.description || '',
+                  required: !!p.required,
+                  default: p.default
+                };
+              }
+              return {
+                name: '',
+                type: 'string',
+                description: '',
+                required: false
+              };
+            })
+          : [],
         isActive: tool.is_active,
         script: tool.script,
       }));
@@ -78,13 +96,17 @@ const ToolsConfig: React.FC = () => {
     if (!isTemp && user) {
       try {
         // Transform the updates to match the database schema
-        const dbUpdates = {
+        const dbUpdates: any = {
           name: updates.name,
           description: updates.description,
-          parameters: updates.parameters,
           is_active: updates.isActive,
           script: updates.script,
         };
+        
+        // Only include parameters if they were updated
+        if (updates.parameters) {
+          dbUpdates.parameters = updates.parameters;
+        }
 
         const { error } = await supabase
           .from('tools')
@@ -107,7 +129,7 @@ const ToolsConfig: React.FC = () => {
 
     try {
       // Transform the tool to match the database schema
-      const dbTool = {
+      const dbTool: any = {
         name: tool.name,
         description: tool.description,
         parameters: tool.parameters,
@@ -129,7 +151,15 @@ const ToolsConfig: React.FC = () => {
         id: data.id,
         name: data.name,
         description: data.description || '',
-        parameters: data.parameters || [],
+        parameters: Array.isArray(data.parameters) 
+          ? data.parameters.map((p: any) => ({
+              name: p.name || '',
+              type: (p.type as 'string' | 'number' | 'boolean' | 'array' | 'object') || 'string',
+              description: p.description || '',
+              required: !!p.required,
+              default: p.default
+            }))
+          : [],
         isActive: data.is_active,
         script: data.script,
       };

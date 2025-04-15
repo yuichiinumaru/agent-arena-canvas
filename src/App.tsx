@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -40,9 +41,10 @@ const App = () => (
               <Route path="/login" element={<LoginPage />} />
               
               <Route path="/" element={<PrivateRoute element={<ChatPage />} />} />
-              <Route path="/agents" element={<PrivateRoute element={<ConfigPage />} />} />
-              <Route path="/database" element={<PrivateRoute element={<ConfigPage />} />} />
-              <Route path="/settings" element={<PrivateRoute element={<ConfigPage />} />} />
+              <Route path="/agents" element={<PrivateRoute element={<ConfigPage defaultTab="agents" />} />} />
+              <Route path="/tools" element={<PrivateRoute element={<ConfigPage defaultTab="tools" />} />} />
+              <Route path="/database" element={<PrivateRoute element={<ConfigPage defaultTab="database" />} />} />
+              <Route path="/settings" element={<PrivateRoute element={<ConfigPage defaultTab="models" />} />} />
               
               <Route path="*" element={<NotFound />} />
             </Routes>
