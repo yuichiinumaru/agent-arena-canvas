@@ -12,7 +12,7 @@ interface ConfigPageProps {
 }
 
 const ConfigPage: React.FC<ConfigPageProps> = ({ defaultTab = 'agents' }) => {
-  const [activeTab, setActiveTab] = useState(defaultTab);
+  const [activeTab, setActiveTab] = useState<'agents' | 'tools' | 'database' | 'models'>(defaultTab);
   const location = useLocation();
   
   // Update active tab based on route
@@ -24,9 +24,9 @@ const ConfigPage: React.FC<ConfigPageProps> = ({ defaultTab = 'agents' }) => {
   }, [location]);
   
   return (
-    <div className="h-full overflow-y-auto">
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full">
-        <div className="border-b sticky top-0 bg-white z-10">
+    <div className="h-full overflow-y-auto bg-background">
+      <Tabs value={activeTab} onValueChange={newValue => setActiveTab(newValue as typeof activeTab)} className="h-full">
+        <div className="border-b sticky top-0 bg-background z-10">
           <div className="container py-4">
             <h1 className="text-2xl font-bold mb-4">Configuration</h1>
             <TabsList className="grid w-full max-w-2xl grid-cols-4">

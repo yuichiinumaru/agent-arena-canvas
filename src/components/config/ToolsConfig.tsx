@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -41,23 +40,13 @@ const ToolsConfig: React.FC = () => {
         name: tool.name,
         description: tool.description || '',
         parameters: Array.isArray(tool.parameters) 
-          ? tool.parameters.map(p => {
-              if (typeof p === 'object' && p !== null) {
-                return {
-                  name: p.name || '',
-                  type: (p.type as 'string' | 'number' | 'boolean' | 'array' | 'object') || 'string',
-                  description: p.description || '',
-                  required: !!p.required,
-                  default: p.default
-                };
-              }
-              return {
-                name: '',
-                type: 'string',
-                description: '',
-                required: false
-              };
-            })
+          ? tool.parameters.map((p: any) => ({
+              name: p.name || '',
+              type: p.type as 'string' | 'number' | 'boolean' | 'array' | 'object' || 'string',
+              description: p.description || '',
+              required: !!p.required,
+              default: p.default
+            }))
           : [],
         isActive: tool.is_active,
         script: tool.script,
