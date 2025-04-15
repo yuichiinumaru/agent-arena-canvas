@@ -19,10 +19,10 @@ export const AgentList: React.FC<AgentListProps> = ({
   onSelectAgent,
 }) => {
   return (
-    <div className="w-64 border-r p-4 flex flex-col">
-      <h2 className="text-lg font-semibold mb-4">Agents</h2>
+    <div className="w-64 border-r border-border p-4 flex flex-col bg-sidebar">
+      <h2 className="text-lg font-semibold mb-4 text-sidebar-foreground">Agents</h2>
       
-      <Button onClick={onCreateAgent} className="mb-4 w-full">
+      <Button onClick={onCreateAgent} className="mb-4 w-full bg-primary text-primary-foreground hover:bg-primary/90">
         <PlusCircle size={16} className="mr-2" />
         New Agent
       </Button>
@@ -33,7 +33,9 @@ export const AgentList: React.FC<AgentListProps> = ({
             <div
               key={agent.id}
               className={`p-2 rounded cursor-pointer flex items-center ${
-                selectedAgentId === agent.id ? 'bg-primary text-primary-foreground' : 'hover:bg-gray-100'
+                selectedAgentId === agent.id 
+                  ? 'bg-primary text-primary-foreground' 
+                  : 'text-sidebar-foreground hover:bg-secondary hover:text-sidebar-accent-foreground'
               }`}
               onClick={() => onSelectAgent(agent.id)}
             >

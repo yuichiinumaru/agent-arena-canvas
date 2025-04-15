@@ -41,7 +41,7 @@ export const BasicInformation: React.FC<BasicInformationProps> = ({
   onActiveChange,
 }) => {
   return (
-    <Card>
+    <Card className="bg-card text-card-foreground border-border">
       <CardHeader>
         <CardTitle>Basic Information</CardTitle>
       </CardHeader>
@@ -54,6 +54,7 @@ export const BasicInformation: React.FC<BasicInformationProps> = ({
               value={name}
               onChange={(e) => onNameChange(e.target.value)}
               placeholder="Agent name"
+              className="bg-input text-foreground border-border"
             />
           </div>
           
@@ -64,6 +65,7 @@ export const BasicInformation: React.FC<BasicInformationProps> = ({
               value={avatar}
               onChange={(e) => onAvatarChange(e.target.value)}
               placeholder="https://example.com/avatar.png"
+              className="bg-input text-foreground border-border"
             />
           </div>
           
@@ -75,13 +77,14 @@ export const BasicInformation: React.FC<BasicInformationProps> = ({
               onChange={(e) => onDescriptionChange(e.target.value)}
               placeholder="Brief description of this agent's role"
               rows={2}
+              className="bg-input text-foreground border-border"
             />
           </div>
           
           <div className="space-y-2 col-span-2">
             <div className="flex justify-between">
               <Label htmlFor="instructions">Instructions</Label>
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-muted-foreground">
                 {tokenCount} tokens
               </span>
             </div>
@@ -91,6 +94,7 @@ export const BasicInformation: React.FC<BasicInformationProps> = ({
               onChange={(e) => onInstructionsChange(e.target.value)}
               placeholder="Detailed instructions for the agent's behavior"
               rows={8}
+              className="bg-input text-foreground border-border"
             />
           </div>
           
@@ -100,7 +104,7 @@ export const BasicInformation: React.FC<BasicInformationProps> = ({
               id="model"
               value={model}
               onChange={(e) => onModelChange(e.target.value)}
-              className="w-full px-3 py-2 border rounded-md"
+              className="w-full px-3 py-2 bg-input text-foreground border border-border rounded-md"
             >
               {models.map((modelConfig) => (
                 <option key={modelConfig.id} value={modelConfig.id}>
@@ -113,14 +117,14 @@ export const BasicInformation: React.FC<BasicInformationProps> = ({
           {onActiveChange && (
             <div className="space-y-2 flex items-center">
               <div className="flex-1">
-                <Label htmlFor="isActive">Status</Label>
+                <Label htmlFor="isActive" className="text-foreground">Status</Label>
                 <div className="flex items-center space-x-2 mt-2">
                   <Switch
                     id="isActive"
                     checked={isActive}
                     onCheckedChange={onActiveChange}
                   />
-                  <Label htmlFor="isActive" className="cursor-pointer">
+                  <Label htmlFor="isActive" className="cursor-pointer text-foreground">
                     {isActive ? 'Active' : 'Inactive'}
                   </Label>
                 </div>

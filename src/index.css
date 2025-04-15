@@ -5,13 +5,13 @@
 
 @layer base {
   :root {
-    --background: 0 0% 0%; /* Black background */
+    --background: 0 0% 3%; /* Very dark black background */
     --foreground: 0 84% 60%; /* Red foreground */
     
-    --card: 0 0% 2%; /* Very dark background for cards */
+    --card: 0 0% 5%; /* Very dark background for cards */
     --card-foreground: 0 84% 60%; /* Red text on cards */
     
-    --popover: 0 0% 3%; /* Very dark popover background */
+    --popover: 0 0% 5%; /* Very dark popover background */
     --popover-foreground: 0 84% 60%; /* Red text on popovers */
     
     --primary: 0 84% 60%; /* Red primary color */
@@ -21,7 +21,7 @@
     --secondary-foreground: 0 84% 60%; /* Red text on secondary */
     
     --muted: 0 0% 12%; /* Dark muted background */
-    --muted-foreground: 0 84% 30%; /* Darker red for muted text */
+    --muted-foreground: 0 84% 40%; /* Darker red for muted text */
     
     --accent: 0 84% 60%; /* Red accent */
     --accent-foreground: 0 0% 98%; /* White text on accent */
@@ -35,7 +35,7 @@
 
     --radius: 0.5rem;
 
-    --sidebar-background: 0 0% 2%; /* Very dark sidebar background */
+    --sidebar-background: 0 0% 5%; /* Very dark sidebar background */
     --sidebar-foreground: 0 84% 60%; /* Red sidebar text */
     --sidebar-primary: 0 84% 60%; /* Red sidebar primary */
     --sidebar-primary-foreground: 0 0% 98%; /* White text on sidebar primary */
@@ -53,5 +53,44 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  /* Fix for white spots in buttons and various UI elements */
+  .bg-slate-800 {
+    @apply bg-background;
+  }
+  .bg-slate-900 {
+    @apply bg-sidebar;
+  }
+  .text-white {
+    @apply text-primary-foreground;
+  }
+  .text-slate-300 {
+    @apply text-sidebar-foreground;
+  }
+  .bg-blue-600 {
+    @apply bg-primary;
+  }
+  .hover\:bg-slate-800:hover {
+    @apply hover:bg-secondary;
+  }
+  
+  /* Fix input and form elements */
+  input, textarea, select {
+    @apply bg-input text-foreground border-border;
+  }
+  
+  /* Fix for tabs */
+  [role="tablist"] {
+    @apply bg-background border-border;
+  }
+  
+  [role="tab"] {
+    @apply text-foreground bg-background data-[state=active]:bg-primary data-[state=active]:text-primary-foreground;
+  }
+  
+  /* Configuration tabs */
+  .Configuration button[role="tab"] {
+    @apply data-[state=active]:bg-primary data-[state=active]:text-primary-foreground;
   }
 }
