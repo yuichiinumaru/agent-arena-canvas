@@ -53,6 +53,16 @@
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
+  
+  /* Ensure all form elements use the correct theme colors */
+  input, textarea, select, button {
+    @apply bg-input text-foreground border-border;
+  }
+  
+  /* Ensure all modals and overlays use the correct background */
+  [data-radix-popper-content-wrapper] {
+    @apply bg-popover text-popover-foreground z-50;
+  }
 }
 
 /* Custom scrollbar */
@@ -119,4 +129,53 @@ input, textarea, select {
 /* Resizable handle styling */
 .resizable-handle {
   @apply w-2 cursor-col-resize bg-border hover:bg-primary transition-colors;
+}
+
+/* Fix dropdown colors */
+.dropdown-menu,
+.select-menu,
+.menu,
+.context-menu,
+.dialog-content,
+.popover-content {
+  @apply bg-popover text-popover-foreground !important;
+}
+
+/* Fix login page */
+.login-page {
+  @apply bg-background text-foreground;
+}
+
+/* Fix all background colors */
+.bg-white {
+  @apply bg-background !important;
+}
+
+.text-black {
+  @apply text-foreground !important;
+}
+
+/* Ensure all dropdowns and selects are properly styled */
+select, option {
+  @apply bg-input text-foreground border-border;
+}
+
+/* Ensure navigation bars are properly styled */
+nav, header, footer {
+  @apply bg-background text-foreground border-border;
+}
+
+/* Remove any white backgrounds */
+.white-bg, [class*="bg-white"] {
+  @apply bg-background !important;
+}
+
+/* Ensure all tabs are properly styled */
+.tabs, .tab, .tab-content, .tab-panel {
+  @apply bg-background text-foreground;
+}
+
+/* Make sure authentication pages are properly styled */
+.auth-page, .login-container, .signup-container {
+  @apply bg-background text-foreground;
 }

@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { PlusCircle, Trash2, Upload } from 'lucide-react';
 import { FileDropZone } from '@/components/shared/FileDropZone';
 import { KnowledgeItem } from '@/types';
+import { ResizablePanel, ResizableHandle, ResizablePanelGroup } from '@/components/ui/resizable';
 
 interface KnowledgeBaseProps {
   items: KnowledgeItem[];
@@ -60,7 +61,7 @@ export const KnowledgeBase: React.FC<KnowledgeBaseProps> = ({
                           type: e.target.value as 'text' | 'file',
                         })
                       }
-                      className="px-3 py-2 border rounded-md"
+                      className="px-3 py-2 border rounded-md bg-input text-foreground border-border"
                     >
                       <option value="text">Text</option>
                       <option value="file">File</option>
@@ -83,6 +84,7 @@ export const KnowledgeBase: React.FC<KnowledgeBaseProps> = ({
                       }
                       placeholder="Enter knowledge content"
                       rows={5}
+                      className="bg-input text-foreground border-border"
                     />
                   ) : (
                     <FileDropZone

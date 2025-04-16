@@ -1,3 +1,4 @@
+
 // Main type definitions for the application
 
 export interface User {
@@ -78,6 +79,15 @@ export interface DatabaseConfig {
   tables?: string[];
   isDefault?: boolean;
   apiUrl?: string;
+  isActive?: boolean;
+  type?: string;
+  connection?: {
+    host?: string;
+    port?: string;
+    database?: string;
+    username?: string;
+    password?: string;
+  };
 }
 
 export interface Conversation {
