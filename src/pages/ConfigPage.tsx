@@ -45,8 +45,6 @@ const ConfigPage: React.FC<ConfigPageProps> = ({ defaultTab = 'agents' }) => {
 
   return (
     <div className="container mx-auto px-4 py-6 min-h-screen">
-      <h1 className="text-2xl font-bold mb-6">Configuration</h1>
-      
       <Tabs
         defaultValue={getCurrentTab()}
         value={getCurrentTab()}

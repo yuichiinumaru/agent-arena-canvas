@@ -87,6 +87,8 @@ export interface DatabaseConfig {
     database?: string;
     username?: string;
     password?: string;
+    url?: string;
+    apiKey?: string;
   };
 }
 
