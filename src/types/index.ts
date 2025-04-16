@@ -63,6 +63,23 @@ export interface Message {
   inReplyTo?: string;
 }
 
+export interface KnowledgeBase {
+  id: string;
+  name: string;
+  items: KnowledgeItem[];
+}
+
+export interface DatabaseConfig {
+  id: string;
+  name: string;
+  provider: 'supabase' | 'postgres' | 'mysql';
+  connectionString?: string;
+  apiKey?: string;
+  tables?: string[];
+  isDefault?: boolean;
+  apiUrl?: string;
+}
+
 export interface Conversation {
   id: string;
   title: string;
@@ -73,19 +90,6 @@ export interface Conversation {
   createdAt: number;
   updatedAt: number;
   messages: Message[];
-}
-
-export interface DatabaseConfig {
-  type: 'arangodb-graph' | 'arangodb-document' | 'postgresql' | 'chromadb';
-  name: string;
-  connection: {
-    url: string;
-    apiKey?: string;
-    username?: string;
-    password?: string;
-    database?: string;
-  };
-  isActive: boolean;
 }
 
 export interface ModelConfig {

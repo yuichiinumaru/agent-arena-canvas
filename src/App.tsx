@@ -10,6 +10,7 @@ import MainLayout from "@/components/layout/MainLayout";
 import LoginPage from "@/pages/LoginPage";
 import ChatPage from "@/pages/ChatPage";
 import ConfigPage from "@/pages/ConfigPage";
+import KnowledgePage from "@/pages/KnowledgePage";
 import NotFound from "@/pages/NotFound";
 
 // Private route component to handle authentication
@@ -17,7 +18,7 @@ const PrivateRoute = ({ element }: { element: React.ReactNode }) => {
   const { isAuthenticated, isLoading } = useAuth();
   
   if (isLoading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    return <div className="min-h-screen flex items-center justify-center bg-background text-foreground">Loading...</div>;
   }
   
   return isAuthenticated ? (
@@ -43,6 +44,7 @@ const App = () => (
               <Route path="/" element={<PrivateRoute element={<ChatPage />} />} />
               <Route path="/agents" element={<PrivateRoute element={<ConfigPage defaultTab="agents" />} />} />
               <Route path="/tools" element={<PrivateRoute element={<ConfigPage defaultTab="tools" />} />} />
+              <Route path="/knowledge" element={<PrivateRoute element={<KnowledgePage />} />} />
               <Route path="/database" element={<PrivateRoute element={<ConfigPage defaultTab="database" />} />} />
               <Route path="/settings" element={<PrivateRoute element={<ConfigPage defaultTab="models" />} />} />
               

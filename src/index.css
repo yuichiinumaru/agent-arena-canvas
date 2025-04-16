@@ -19,6 +19,9 @@
     --card: 0 0% 9%; /* Slightly lighter than background */
     --card-foreground: 0 0% 98%; /* Off-white */
     
+    --popover: 0 0% 9%; /* Same as card for consistency */
+    --popover-foreground: 0 0% 98%; /* Off-white */
+    
     --input: 0 0% 12%; /* Slightly darker than card */
     --ring: 0 75% 50%; /* Red */
     
@@ -87,8 +90,19 @@ input:focus, textarea:focus, select:focus {
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
+/* Fix for dropdown menus */
+.radix-dropdown-content,
+[data-radix-popper-content-wrapper],
+.popover-content,
+[data-state="open"] {
+  @apply bg-popover text-popover-foreground border border-border !important;
+  color: hsl(var(--popover-foreground)) !important;
+  background-color: hsl(var(--popover)) !important;
+  z-index: 50;
+}
+
 /* Ensure all buttons have the correct color */
-.button, button, [type="button"], [type="reset"], [type="submit"] {
+.button, button:not([class*="bg-"]), [type="button"]:not([class*="bg-"]), [type="reset"], [type="submit"] {
   @apply bg-primary text-primary-foreground hover:bg-primary/90;
 }
 
@@ -100,4 +114,9 @@ input, textarea, select {
 /* Card styling */
 .card {
   @apply bg-card text-card-foreground border border-border rounded-lg;
+}
+
+/* Resizable handle styling */
+.resizable-handle {
+  @apply w-2 cursor-col-resize bg-border hover:bg-primary transition-colors;
 }

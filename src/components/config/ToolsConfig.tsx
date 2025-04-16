@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -94,7 +95,16 @@ const ToolsConfig: React.FC = () => {
         
         // Only include parameters if they were updated
         if (updates.parameters) {
-          dbUpdates.parameters = updates.parameters;
+          // Convert ToolParameter[] to a format Supabase can handle (JSON)
+          const parametersJson = updates.parameters.map(p => ({
+            name: p.name,
+            type: p.type,
+            description: p.description,
+            required: p.required,
+            default: p.default
+          }));
+          
+          dbUpdates.parameters = parametersJson;
         }
 
         const { error } = await supabase
@@ -103,6 +113,11 @@ const ToolsConfig: React.FC = () => {
           .eq('id', id);
 
         if (error) throw error;
+        
+        toast({
+          title: 'Tool updated',
+          description: 'The tool has been updated successfully.',
+        });
       } catch (error: any) {
         toast({
           title: 'Error updating tool',
@@ -117,11 +132,20 @@ const ToolsConfig: React.FC = () => {
     if (!user) return;
 
     try {
+      // Convert ToolParameter[] to a format Supabase can handle (JSON)
+      const parametersJson = tool.parameters.map(p => ({
+        name: p.name,
+        type: p.type,
+        description: p.description,
+        required: p.required,
+        default: p.default
+      }));
+      
       // Transform the tool to match the database schema
-      const dbTool: any = {
+      const dbTool = {
         name: tool.name,
         description: tool.description,
-        parameters: tool.parameters,
+        parameters: parametersJson,
         is_active: tool.isActive,
         script: tool.script,
         user_id: user.id,
