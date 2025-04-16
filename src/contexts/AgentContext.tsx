@@ -75,80 +75,84 @@ export const AgentProvider: React.FC<AgentProviderProps> = ({ children }) => {
     try {
       if (!user) return;
       
-      // Check if the conversations table exists
-      const { error } = await supabase
-        .from('conversations')
-        .select('id')
-        .limit(1)
-        .single();
-
-      // If there's an error, the table might not exist
-      if (error) {
-        console.error('Error checking conversations table:', error);
+      // Try to load conversations from localStorage first as a fallback
+      const storedConversations = localStorage.getItem('conversations');
+      let localConversations: Conversation[] = [];
+      
+      if (storedConversations) {
+        localConversations = JSON.parse(storedConversations);
+      }
+      
+      // Then try to get from Supabase
+      try {
+        const { data, error } = await supabase
+          .from('conversations')
+          .select('*')
+          .eq('user_id', user.id);
         
-        // Store conversations in localStorage as a fallback
-        const storedConversations = localStorage.getItem('conversations');
-        if (storedConversations) {
-          setConversations(JSON.parse(storedConversations));
+        if (error) {
+          console.error('Error loading conversations from Supabase:', error);
           
-          // If there are conversations, set the current one
-          const parsedConversations = JSON.parse(storedConversations);
-          if (parsedConversations.length > 0) {
-            setCurrentConversationId(parsedConversations[0].id);
+          // If we have local conversations, use those
+          if (localConversations.length > 0) {
+            setConversations(localConversations);
+            setCurrentConversationId(localConversations[0].id);
           } else {
             // Create a new conversation if none exist
             createNewConversation();
           }
+          return;
+        }
+        
+        if (data && data.length > 0) {
+          // Transform data to match Conversation type
+          const transformedConversations: Conversation[] = data.map(item => ({
+            id: item.id,
+            title: item.title || 'New Conversation',
+            participants: {
+              userId: user.id,
+              agentIds: item.agent_ids || [],
+            },
+            createdAt: new Date(item.created_at).getTime(),
+            updatedAt: new Date(item.updated_at).getTime(),
+            messages: item.messages || [],
+          }));
+          
+          setConversations(transformedConversations);
+          
+          // If there are conversations, set the current one
+          if (transformedConversations.length > 0) {
+            setCurrentConversationId(transformedConversations[0].id);
+          }
+          
+          // Update localStorage as a backup
+          localStorage.setItem('conversations', JSON.stringify(transformedConversations));
+        } else if (localConversations.length > 0) {
+          // If no Supabase data but we have local data, use that
+          setConversations(localConversations);
+          setCurrentConversationId(localConversations[0].id);
         } else {
           // Create a new conversation if none exist
           createNewConversation();
         }
-        return;
+      } catch (supabaseError) {
+        console.error('Supabase error in loadConversations:', supabaseError);
+        
+        // Fallback to localStorage conversations
+        if (localConversations.length > 0) {
+          setConversations(localConversations);
+          setCurrentConversationId(localConversations[0].id);
+        } else {
+          createNewConversation();
+        }
       }
-      
-      // Now try to load conversations
-      const { data, error: loadError } = await supabase
-        .from('conversations')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('updated_at', { ascending: false });
-      
-      if (loadError) {
-        console.error('Error loading conversations:', loadError);
-        return;
-      }
-      
-      // Transform data to match Conversation type
-      const transformedConversations: Conversation[] = data.map(item => ({
-        id: item.id,
-        title: item.title || 'New Conversation',
-        participants: {
-          userId: user.id,
-          agentIds: item.agent_ids || [],
-        },
-        createdAt: new Date(item.created_at).getTime(),
-        updatedAt: new Date(item.updated_at).getTime(),
-        messages: item.messages || [],
-      }));
-      
-      setConversations(transformedConversations);
-      
-      // If there are conversations, set the current one
-      if (transformedConversations.length > 0) {
-        setCurrentConversationId(transformedConversations[0].id);
-      } else {
-        // Create a new conversation if none exist
-        createNewConversation();
-      }
-      
-      // Update localStorage as a backup
-      localStorage.setItem('conversations', JSON.stringify(transformedConversations));
     } catch (error) {
       console.error('Error in loadConversations:', error);
+      createNewConversation();
     }
   };
   
-  // Save conversation to database
+  // Save conversation to database and localStorage
   const saveConversation = async (conversation: Conversation) => {
     try {
       if (!user) return;
@@ -158,20 +162,19 @@ export const AgentProvider: React.FC<AgentProviderProps> = ({ children }) => {
         c.id === conversation.id ? conversation : c
       );
       localStorage.setItem('conversations', JSON.stringify(updatedConversations));
+      setConversations(updatedConversations);
       
       // Try to save to Supabase if available
       try {
-        const { error } = await supabase
-          .from('conversations')
-          .upsert({
-            id: conversation.id,
-            title: conversation.title,
-            user_id: user.id,
-            agent_ids: conversation.participants.agentIds,
-            messages: conversation.messages,
-            created_at: new Date(conversation.createdAt).toISOString(),
-            updated_at: new Date(conversation.updatedAt).toISOString(),
-          });
+        const { error } = await supabase.rpc('upsert_conversation', {
+          p_id: conversation.id,
+          p_title: conversation.title,
+          p_user_id: user.id,
+          p_agent_ids: conversation.participants.agentIds,
+          p_messages: conversation.messages,
+          p_created_at: new Date(conversation.createdAt).toISOString(),
+          p_updated_at: new Date(conversation.updatedAt).toISOString()
+        });
         
         if (error) {
           console.error('Error saving conversation to Supabase:', error);

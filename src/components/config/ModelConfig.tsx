@@ -1,19 +1,15 @@
-
 import React, { useState } from 'react';
-import { useAgents } from '@/contexts/AgentContext';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useAgent } from '@/contexts/AgentContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { useToast } from '@/hooks/use-toast';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { PlusCircle, Save, Trash2 } from 'lucide-react';
-import { ModelConfig } from '@/types';
+import { ModelConfig as ModelConfigType } from '@/types';
 
 const ModelConfigPage: React.FC = () => {
-  const { appConfig, updateModelConfig } = useAgents();
-  const { toast } = useToast();
-  const [models, setModels] = useState<ModelConfig[]>(appConfig.models);
+  const { appConfig, updateModelConfig } = useAgent();
+  const [models, setModels] = useState<ModelConfigType[]>(appConfig.models);
   
   const handleAddModel = () => {
     setModels([
@@ -28,11 +24,10 @@ const ModelConfigPage: React.FC = () => {
     ]);
   };
   
-  const handleUpdateModel = (index: number, updates: Partial<ModelConfig>) => {
+  const handleUpdateModel = (index: number, updates: Partial<ModelConfigType>) => {
     const updatedModels = [...models];
     updatedModels[index] = { ...updatedModels[index], ...updates };
     
-    // If this model is being set as default, unset all others
     if (updates.isDefault) {
       updatedModels.forEach((model, i) => {
         if (i !== index) {
@@ -45,7 +40,6 @@ const ModelConfigPage: React.FC = () => {
   };
   
   const handleSaveModels = () => {
-    // Ensure at least one model is set as default
     if (!models.some(model => model.isDefault)) {
       if (models.length > 0) {
         models[0].isDefault = true;
@@ -63,7 +57,6 @@ const ModelConfigPage: React.FC = () => {
   const handleRemoveModel = (index: number) => {
     const newModels = models.filter((_, i) => i !== index);
     
-    // If we removed the default model, set the first one as default
     if (models[index].isDefault && newModels.length > 0) {
       newModels[0].isDefault = true;
     }

@@ -5,10 +5,11 @@
 - [x] Fix color scheme inconsistencies (black and red theme)
 - [x] Add predefined agents with relevant descriptions
 - [x] Move side menu to top navigation bar
-- [ ] Fix remaining white background areas in UI
+- [x] Fix remaining white background areas in UI
 - [x] Make the agent list sidebar width adjustable
 - [x] Make all vertical dividers adjustable
 - [x] Fix "Configuration" header and tabs repetition
+- [x] Move top menu to prevent duplication across tabs
 
 ## Functionality Improvements
 - [ ] Fix tools section saving functionality
@@ -17,6 +18,17 @@
 - [x] Create shared knowledge base between Agents and Knowledge sections
 - [x] Add two view modes for Knowledge section (list and thumbnail)
 - [x] Implement document viewer with metadata display
-- [ ] Add Supabase database schema for conversations
+- [x] Add Supabase database schema for conversations
 - [ ] Fix conversation storage and retrieval
+- [ ] Fix useAgents/useAgent hook naming inconsistency
+- [ ] Refactor long component files into smaller, more manageable files
 
+## Backend Integration
+- [x] Setup Supabase functions to create required tables
+- [ ] Implement proper error handling for database operations
+- [ ] Add migration capabilities for older data
+
+## Code Quality
+- [ ] Add proper TypeScript type definitions for all components
+- [ ] Implement consistent error handling across the application
+- [ ] Add unit tests for critical functionality

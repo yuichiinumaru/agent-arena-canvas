@@ -1,201 +1,122 @@
-
-import React, { useState, useRef, useEffect } from 'react';
-import { useAgents } from '@/contexts/AgentContext';
-import { Agent, Message } from '@/types';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Send, PlusCircle, Settings } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useAgent } from '@/contexts/AgentContext';
 import MessageItem from './MessageItem';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import AgentSelector from './AgentSelector';
+import { SendHorizontal } from 'lucide-react';
+import { Message } from '@/types';
 
 const ChatInterface: React.FC = () => {
-  const { 
-    agents, 
-    conversations, 
-    currentConversationId, 
-    sendMessage, 
-    isProcessing,
-    createConversation,
-  } = useAgents();
-  
-  const [messageText, setMessageText] = useState('');
-  const [isTask, setIsTask] = useState(false);
-  const [selectedAgentIds, setSelectedAgentIds] = useState<string[]>([]);
-  const [mentionedAgentIds, setMentionedAgentIds] = useState<string[]>([]);
-  const [showAgentSelector, setShowAgentSelector] = useState(false);
-  
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  
+  const [input, setInput] = useState('');
+  const [isAgentSelectorOpen, setIsAgentSelectorOpen] = useState(false);
+  const { user } = useAuth();
+  const {
+    agents,
+    activeAgent,
+    setActiveAgent,
+    conversations,
+    currentConversationId,
+    addMessageToConversation,
+    updateMessageInConversation,
+    deleteMessageInConversation,
+  } = useAgent();
+  const chatBottomRef = useRef<HTMLDivElement>(null);
+
+  // Scroll to bottom when messages update
+  useEffect(() => {
+    scrollToBottom();
+  }, [conversations, currentConversationId]);
+
+  const scrollToBottom = () => {
+    chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  if (!user) {
+    return <div className="p-4">Please log in to start chatting.</div>;
+  }
+
   const currentConversation = conversations.find(c => c.id === currentConversationId);
-  const activeAgents = agents.filter(a => a.isActive);
-  
-  // Auto-scroll to the bottom when messages change
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [currentConversation?.messages]);
-  
-  // Focus textarea when component mounts
-  useEffect(() => {
-    textareaRef.current?.focus();
-  }, []);
 
-  // Extract @mentions from message text
-  const extractMentions = (text: string): string[] => {
-    const mentions = text.match(/@(\w+)/g) || [];
-    return mentions
-      .map(mention => mention.substring(1)) // Remove @ symbol
-      .map(name => {
-        const agent = agents.find(a => a.name.toLowerCase() === name.toLowerCase());
-        return agent ? agent.id : null;
-      })
-      .filter((id): id is string => id !== null);
+  const handleSendMessage = () => {
+    if (!input.trim() || !currentConversationId) return;
+
+    const newMessage: Omit<Message, 'id'> = {
+      conversationId: currentConversationId,
+      content: input,
+      sender: {
+        id: user.id,
+        name: user.name,
+        type: 'user',
+        avatar: user.avatar,
+      },
+      mentions: [],
+      assignedTo: [],
+      timestamp: Date.now(),
+      isTask: false,
+    };
+
+    addMessageToConversation(currentConversationId, newMessage);
+    setInput('');
+    scrollToBottom();
   };
 
-  const handleMessageChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setMessageText(e.target.value);
-    
-    // Extract mentions from text
-    const mentions = extractMentions(e.target.value);
-    setMentionedAgentIds(mentions);
-  };
-
-  const handleSendMessage = async () => {
-    if (!messageText.trim() || isProcessing) return;
-    
-    // If no conversation exists or no agents selected, create one
-    if (!currentConversationId || !currentConversation) {
-      // If no agents are selected but mentions exist, use mentioned agents
-      const agentsToUse = selectedAgentIds.length > 0 
-        ? selectedAgentIds 
-        : mentionedAgentIds.length > 0 
-          ? mentionedAgentIds 
-          : activeAgents.map(a => a.id);
-      
-      if (agentsToUse.length === 0) {
-        alert('Please select at least one agent to chat with');
-        return;
-      }
-      
-      createConversation(agentsToUse);
-      return; // Wait for the next render cycle with the new conversation
-    }
-    
-    // Combine explicitly selected agents with mentioned agents
-    const mentions = [...new Set([...selectedAgentIds, ...mentionedAgentIds])];
-    
-    await sendMessage(messageText, mentions, isTask);
-    
-    // Clear the input and mentions after sending
-    setMessageText('');
-    setSelectedAgentIds([]);
-    setMentionedAgentIds([]);
-    setIsTask(false);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
       handleSendMessage();
     }
   };
 
   const toggleAgentSelector = () => {
-    setShowAgentSelector(!showAgentSelector);
+    setIsAgentSelectorOpen(!isAgentSelectorOpen);
   };
 
   return (
     <div className="flex flex-col h-full">
-      {/* Messages area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {currentConversation?.messages.map((message) => (
-          <MessageItem key={message.id} message={message} agents={agents} />
-        ))}
-        {currentConversation?.messages.length === 0 && (
-          <div className="flex flex-col items-center justify-center h-full text-gray-500">
-            <h3 className="text-lg font-medium mb-2">Start a conversation</h3>
-            <p className="text-sm">Select agents and send a message to begin</p>
-          </div>
-        )}
-        <div ref={messagesEndRef} />
-      </div>
-      
-      {/* Agent selection area (conditionally shown) */}
-      {showAgentSelector && (
+      {/* Chat Header */}
+      <div className="border-b p-4">
+        <h2 className="text-lg font-semibold">
+          {activeAgent ? `Chatting with ${activeAgent.name}` : 'Chat'}
+        </h2>
         <AgentSelector
-          agents={activeAgents}
-          selectedAgentIds={selectedAgentIds}
-          onChange={setSelectedAgentIds}
+          isOpen={isAgentSelectorOpen}
+          onClose={() => setIsAgentSelectorOpen(false)}
+          agents={agents}
+          activeAgent={activeAgent}
+          onAgentSelect={setActiveAgent}
         />
-      )}
-      
-      {/* Input area */}
-      <div className="border-t p-4 space-y-2">
-        <div className="flex items-center space-x-2 mb-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={toggleAgentSelector}
-            className="flex items-center space-x-1"
-          >
-            <PlusCircle size={16} />
-            <span>Agents</span>
-          </Button>
-          
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="isTask"
-              checked={isTask}
-              onCheckedChange={(checked) => setIsTask(!!checked)}
-            />
-            <label htmlFor="isTask" className="text-sm cursor-pointer">
-              Mark as task
-            </label>
-          </div>
-          
-          <div className="ml-auto">
-            <Button variant="ghost" size="sm">
-              <Settings size={16} />
-            </Button>
-          </div>
-        </div>
-        
-        <div className="flex space-x-2">
-          <Textarea
-            ref={textareaRef}
-            value={messageText}
-            onChange={handleMessageChange}
-            onKeyDown={handleKeyDown}
-            placeholder="Type a message... Use @agent to mention specific agents"
-            className="flex-1 min-h-[80px] max-h-[160px]"
-          />
-          <Button 
-            onClick={handleSendMessage} 
-            disabled={!messageText.trim() || isProcessing}
-            className="self-end"
-          >
-            <Send size={18} />
-          </Button>
-        </div>
-        
-        {/* Show mentioned agents */}
-        {mentionedAgentIds.length > 0 && (
-          <div className="flex flex-wrap gap-1 mt-1">
-            {mentionedAgentIds.map(id => {
-              const agent = agents.find(a => a.id === id);
-              return agent && (
-                <span 
-                  key={id} 
-                  className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800"
-                >
-                  @{agent.name}
-                </span>
-              );
-            })}
-          </div>
+      </div>
+
+      {/* Message List */}
+      <div className="flex-1 overflow-y-auto p-4">
+        {currentConversation ? (
+          currentConversation.messages.map(message => (
+            <MessageItem key={message.id} message={message} />
+          ))
+        ) : (
+          <div className="text-center text-gray-500">No messages in this conversation.</div>
         )}
+        <div ref={chatBottomRef} /> {/* Scroll anchor */}
+      </div>
+
+      {/* Chat Input */}
+      <div className="p-4 border-t bg-gray-50">
+        <div className="flex items-center space-x-2">
+          <Input
+            type="text"
+            placeholder="Type your message here..."
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            className="flex-1"
+          />
+          <Button onClick={handleSendMessage}>
+            <SendHorizontal size={16} className="mr-2" />
+            Send
+          </Button>
+        </div>
       </div>
     </div>
   );

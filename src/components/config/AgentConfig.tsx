@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { useAgents } from '@/contexts/AgentContext';
+import { useAgent } from '@/contexts/AgentContext';
 import geminiService from '@/services/geminiService';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -12,7 +11,7 @@ import { ToolConfig } from './agent/ToolConfig';
 import { Agent, KnowledgeItem, Tool, ToolParameter } from '@/types';
 
 const AgentConfig: React.FC = () => {
-  const { agents, addAgent, updateAgent, removeAgent, appConfig } = useAgents();
+  const { agents, addAgent, updateAgent, removeAgent, appConfig } = useAgent();
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [tokenCount, setTokenCount] = useState<number>(0);

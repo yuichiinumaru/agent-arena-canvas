@@ -1,22 +1,17 @@
-
-import React, { useState } from 'react';
-import { useAgents } from '@/contexts/AgentContext';
-import { DatabaseConfig } from '@/types';
+import React, { useState, useEffect } from 'react';
+import { useAgent } from '@/contexts/AgentContext';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Switch } from '@/components/ui/switch';
-import { PlusCircle, Trash2, Save, Database } from 'lucide-react';
+import { PlusCircle, Trash2, Save } from 'lucide-react';
+import { DatabaseConfig as DatabaseConfigType } from '@/types';
 
 const DatabaseConfigComponent: React.FC = () => {
-  const { appConfig, updateDatabaseConfig } = useAgents();
-  const [databases, setDatabases] = useState<DatabaseConfig[]>(appConfig.databases);
+  const { appConfig, updateDatabaseConfig } = useAgent();
+  const [databases, setDatabases] = useState<DatabaseConfigType[]>(appConfig.databases);
   
   // Add a new database configuration
-  const handleAddDatabase = (type: DatabaseConfig['type']) => {
-    const newDb: DatabaseConfig = {
+  const handleAddDatabase = (type: DatabaseConfigType['type']) => {
+    const newDb: DatabaseConfigType = {
       type,
       name: `New ${type} Database`,
       connection: {
@@ -33,7 +28,7 @@ const DatabaseConfigComponent: React.FC = () => {
   };
   
   // Update a database configuration
-  const handleUpdateDatabase = (index: number, updates: Partial<DatabaseConfig>) => {
+  const handleUpdateDatabase = (index: number, updates: Partial<DatabaseConfigType>) => {
     const updatedDatabases = [...databases];
     updatedDatabases[index] = { ...updatedDatabases[index], ...updates };
     setDatabases(updatedDatabases);
@@ -42,7 +37,7 @@ const DatabaseConfigComponent: React.FC = () => {
   // Update a database connection property
   const handleUpdateConnection = (
     index: number, 
-    field: keyof DatabaseConfig['connection'], 
+    field: keyof DatabaseConfigType['connection'], 
     value: string
   ) => {
     const updatedDatabases = [...databases];
@@ -348,7 +343,6 @@ const DatabaseConfigComponent: React.FC = () => {
                         </div>
                       </CardHeader>
                       <CardContent className="pt-4 space-y-4">
-                        {/* Same fields as above, repeated for this tab */}
                         <div className="space-y-2">
                           <Label htmlFor={`db-name-${index}`}>Database Name</Label>
                           <Input
@@ -456,7 +450,6 @@ const DatabaseConfigComponent: React.FC = () => {
                   return (
                     <Card key={index}>
                       <CardHeader className="bg-green-50">
-                        {/* Similar content as above for PostgreSQL */}
                         <div className="flex justify-between items-center">
                           <CardTitle className="flex items-center">
                             <Database size={16} className="mr-2" />
@@ -477,7 +470,6 @@ const DatabaseConfigComponent: React.FC = () => {
                         </div>
                       </CardHeader>
                       <CardContent className="pt-4 space-y-4">
-                        {/* Same PostgreSQL specific fields */}
                         <div className="space-y-2">
                           <Label htmlFor={`db-name-${index}`}>Database Name</Label>
                           <Input
@@ -574,7 +566,6 @@ const DatabaseConfigComponent: React.FC = () => {
                   return (
                     <Card key={index}>
                       <CardHeader className="bg-purple-50">
-                        {/* Similar content as above for ChromaDB */}
                         <div className="flex justify-between items-center">
                           <CardTitle className="flex items-center">
                             <Database size={16} className="mr-2" />
@@ -595,7 +586,6 @@ const DatabaseConfigComponent: React.FC = () => {
                         </div>
                       </CardHeader>
                       <CardContent className="pt-4 space-y-4">
-                        {/* ChromaDB specific fields */}
                         <div className="space-y-2">
                           <Label htmlFor={`db-name-${index}`}>Database Name</Label>
                           <Input
