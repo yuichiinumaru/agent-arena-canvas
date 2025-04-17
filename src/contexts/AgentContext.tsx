@@ -1,9 +1,9 @@
 
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import { Agent, Conversation, Message } from '@/types';
 import { v4 as uuidv4 } from 'uuid';
-import { useAuth } from './AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { Agent, Conversation, Message } from '@/types';
 
 interface AgentContextProps {
   agents: Agent[];

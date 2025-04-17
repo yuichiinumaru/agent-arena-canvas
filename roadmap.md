@@ -35,12 +35,12 @@
 - [x] Add proper TypeScript type definitions for all components
 - [ ] Implement consistent error handling across the application
 - [ ] Add unit tests for critical functionality
-- [ ] Refactor long component files into smaller, more manageable files
+- [x] Refactor long component files into smaller, more manageable files
 - [ ] Fix build errors in configuration files
 
 ## TODO Soon
 - [ ] Fix the conversations table in Supabase database
 - [ ] Create proper RLS policies for conversation data
 - [ ] Improve agent/conversation integration
-- [ ] Fix the AgentContext.tsx file (refactor into smaller parts)
+- [x] Fix the AgentContext.tsx file (refactor into smaller parts)
 - [ ] Implement proper error handling for Supabase operations
