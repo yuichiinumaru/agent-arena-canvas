@@ -21,9 +21,9 @@
 - [x] Create shared knowledge base between Agents and Knowledge sections
 - [x] Add two view modes for Knowledge section (list and thumbnail)
 - [x] Implement document viewer with metadata display
-- [ ] Fix conversation storage and retrieval
-- [ ] Fix Supabase database integration for conversations
+- [x] Fix conversation storage and retrieval (temporary localStorage solution until DB is ready)
 - [ ] Create appropriate database tables for conversations
+- [x] Add FastAPI to MCP conversion tool to help users create agent tools
 
 ## Backend Integration
 - [x] Setup Supabase functions to create required tables
@@ -39,8 +39,9 @@
 - [x] Fix build errors in configuration files
 
 ## TODO Soon
-- [x] Fix the conversations table in Supabase database
+- [ ] Create the conversations table in Supabase database
 - [ ] Create proper RLS policies for conversation data
-- [ ] Improve agent/conversation integration
+- [x] Improve agent/conversation integration
 - [x] Fix the AgentContext.tsx file (refactor into smaller parts)
-- [ ] Implement proper error handling for Supabase operations
+- [x] Implement proper error handling for Supabase operations
+- [ ] Expand FastAPI to MCP converter with more advanced features

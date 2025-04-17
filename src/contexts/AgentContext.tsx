@@ -86,22 +86,12 @@ export const AgentProvider: React.FC<AgentProviderProps> = ({ children }) => {
       
       // Then try to get from Supabase
       try {
-        // Using our updated function that will be implemented on the backend
+        // Using our updated function that will return an empty array until table is created
         const data = await loadUserConversations(user.id);
         
         if (data && data.length > 0) {
           // Transform data to match Conversation type
-          const transformedConversations: Conversation[] = data.map(item => ({
-            id: item.id,
-            title: item.title || 'New Conversation',
-            participants: {
-              userId: user.id,
-              agentIds: item.agent_ids || [],
-            },
-            createdAt: new Date(item.created_at).getTime(),
-            updatedAt: new Date(item.updated_at).getTime(),
-            messages: item.messages || [],
-          }));
+          const transformedConversations: Conversation[] = data;
           
           setConversations(transformedConversations);
           
