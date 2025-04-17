@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Agent, Conversation, Message } from '@/types';
+import { loadUserConversations, upsertConversation } from '@/integrations/supabase/functions';
 
 interface AgentContextProps {
   agents: Agent[];
@@ -85,24 +86,8 @@ export const AgentProvider: React.FC<AgentProviderProps> = ({ children }) => {
       
       // Then try to get from Supabase
       try {
-        const { data, error } = await supabase
-          .from('conversations')
-          .select('*')
-          .eq('user_id', user.id);
-        
-        if (error) {
-          console.error('Error loading conversations from Supabase:', error);
-          
-          // If we have local conversations, use those
-          if (localConversations.length > 0) {
-            setConversations(localConversations);
-            setCurrentConversationId(localConversations[0].id);
-          } else {
-            // Create a new conversation if none exist
-            createNewConversation();
-          }
-          return;
-        }
+        // Using our updated function that will be implemented on the backend
+        const data = await loadUserConversations(user.id);
         
         if (data && data.length > 0) {
           // Transform data to match Conversation type
@@ -166,19 +151,7 @@ export const AgentProvider: React.FC<AgentProviderProps> = ({ children }) => {
       
       // Try to save to Supabase if available
       try {
-        const { error } = await supabase.rpc('upsert_conversation', {
-          p_id: conversation.id,
-          p_title: conversation.title,
-          p_user_id: user.id,
-          p_agent_ids: conversation.participants.agentIds,
-          p_messages: conversation.messages,
-          p_created_at: new Date(conversation.createdAt).toISOString(),
-          p_updated_at: new Date(conversation.updatedAt).toISOString()
-        });
-        
-        if (error) {
-          console.error('Error saving conversation to Supabase:', error);
-        }
+        await upsertConversation(conversation, user.id);
       } catch (supabaseError) {
         console.error('Supabase error in saveConversation:', supabaseError);
       }

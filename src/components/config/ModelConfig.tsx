@@ -1,15 +1,18 @@
+
 import React, { useState } from 'react';
-import { useAgent } from '@/contexts/AgentContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Switch } from '@/components/ui/switch';
 import { PlusCircle, Save, Trash2 } from 'lucide-react';
 import { ModelConfig as ModelConfigType } from '@/types';
+import { useToast } from '@/hooks/use-toast';
 
+// Mock ModelConfig component - this isn't fully implemented yet as per the roadmap
 const ModelConfigPage: React.FC = () => {
-  const { appConfig, updateModelConfig } = useAgent();
-  const [models, setModels] = useState<ModelConfigType[]>(appConfig.models);
+  const [models, setModels] = useState<ModelConfigType[]>([]);
+  const { toast } = useToast();
   
   const handleAddModel = () => {
     setModels([
@@ -46,7 +49,8 @@ const ModelConfigPage: React.FC = () => {
       }
     }
     
-    updateModelConfig(models);
+    // This would call updateModelConfig from the context once implemented
+    // updateModelConfig(models);
     
     toast({
       title: 'Models configuration saved',

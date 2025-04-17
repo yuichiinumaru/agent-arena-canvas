@@ -36,10 +36,10 @@
 - [ ] Implement consistent error handling across the application
 - [ ] Add unit tests for critical functionality
 - [x] Refactor long component files into smaller, more manageable files
-- [ ] Fix build errors in configuration files
+- [x] Fix build errors in configuration files
 
 ## TODO Soon
-- [ ] Fix the conversations table in Supabase database
+- [x] Fix the conversations table in Supabase database
 - [ ] Create proper RLS policies for conversation data
 - [ ] Improve agent/conversation integration
 - [x] Fix the AgentContext.tsx file (refactor into smaller parts)

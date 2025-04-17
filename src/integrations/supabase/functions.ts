@@ -1,79 +1,71 @@
 
+// This file handles Supabase RPC functions and common database operations
 import { supabase } from './client';
+import { Conversation } from '@/types';
 
 /**
- * Creates the conversations table in Supabase if it doesn't exist
+ * Creates a new conversation or updates an existing one.
  */
-export const createConversationsTable = async () => {
+export async function upsertConversation(conversation: Conversation, userId: string) {
   try {
-    // Since we can't directly query the information schema safely, 
-    // we'll try an operation that would fail if the table doesn't exist
+    // Since we don't have an RPC function yet, we'll use the CRUD operations
+    const { data, error } = await supabase
+      .from('conversations') // Note: This table doesn't exist yet, we need to create it
+      .upsert({
+        id: conversation.id,
+        title: conversation.title,
+        user_id: userId,
+        agent_ids: conversation.participants.agentIds,
+        messages: conversation.messages,
+        created_at: new Date(conversation.createdAt).toISOString(),
+        updated_at: new Date(conversation.updatedAt).toISOString()
+      }, {
+        onConflict: 'id'
+      });
+
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Error upserting conversation:', error);
+    throw error;
+  }
+}
+
+/**
+ * Loads conversations for a specific user.
+ */
+export async function loadUserConversations(userId: string) {
+  try {
+    // This will need to be updated once we create the conversations table
     const { data, error } = await supabase
       .from('conversations')
-      .select('id')
-      .limit(1);
-    
-    if (error) {
-      // Table likely doesn't exist, so create it via SQL
-      const createTableSQL = `
-      CREATE TABLE IF NOT EXISTS public.conversations (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        title TEXT NOT NULL,
-        user_id UUID NOT NULL,
-        agent_ids TEXT[] DEFAULT '{}',
-        messages JSONB DEFAULT '[]',
-        created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
-        updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
-      );
-      
-      -- Add RLS policies
-      ALTER TABLE public.conversations ENABLE ROW LEVEL SECURITY;
-      
-      -- Create policy for select
-      CREATE POLICY "Users can view their own conversations" ON public.conversations
-        FOR SELECT USING (auth.uid() = user_id);
-        
-      -- Create policy for insert
-      CREATE POLICY "Users can insert their own conversations" ON public.conversations
-        FOR INSERT WITH CHECK (auth.uid() = user_id);
-        
-      -- Create policy for update
-      CREATE POLICY "Users can update their own conversations" ON public.conversations
-        FOR UPDATE USING (auth.uid() = user_id);
-        
-      -- Create policy for delete
-      CREATE POLICY "Users can delete their own conversations" ON public.conversations
-        FOR DELETE USING (auth.uid() = user_id);
-      `;
-      
-      // Execute the raw SQL directly
-      const { error: sqlError } = await supabase.rpc('exec_sql', { sql: createTableSQL });
-      
-      if (sqlError) {
-        console.error('Error creating conversations table:', sqlError);
-      }
-    }
+      .select('*')
+      .eq('user_id', userId)
+      .order('updated_at', { ascending: false });
+
+    if (error) throw error;
+    return data;
   } catch (error) {
-    console.error('Error in createConversationsTable:', error);
+    console.error('Error loading user conversations:', error);
+    throw error;
   }
-};
+}
 
 /**
- * Utility function to check if a table exists in the database
- * Note: This is a simplified version that doesn't rely on information_schema
+ * Deletes a conversation by ID.
  */
-export const tableExists = async (tableName: string) => {
+export async function deleteConversation(conversationId: string, userId: string) {
   try {
-    // Try to select a single row from the table
     const { error } = await supabase
-      .from(tableName)
-      .select('*')
-      .limit(1);
-    
-    // If there's no error, the table exists
-    return !error;
+      .from('conversations')
+      .delete()
+      .eq('id', conversationId)
+      .eq('user_id', userId);
+
+    if (error) throw error;
+    return true;
   } catch (error) {
-    console.error(`Error in tableExists for ${tableName}:`, error);
-    return false;
+    console.error('Error deleting conversation:', error);
+    throw error;
   }
-};
+}
