@@ -35,22 +35,24 @@ const App = () => (
     <AuthProvider>
       <AgentProvider>
         <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/login" element={<LoginPage />} />
-              
-              <Route path="/" element={<PrivateRoute element={<ChatPage />} />} />
-              <Route path="/agents" element={<PrivateRoute element={<ConfigPage defaultTab="agents" />} />} />
-              <Route path="/tools" element={<PrivateRoute element={<ConfigPage defaultTab="tools" />} />} />
-              <Route path="/knowledge" element={<PrivateRoute element={<KnowledgePage />} />} />
-              <Route path="/database" element={<PrivateRoute element={<ConfigPage defaultTab="database" />} />} />
-              <Route path="/settings" element={<PrivateRoute element={<ConfigPage defaultTab="models" />} />} />
-              
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
+          <div className="h-screen bg-background">
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/login" element={<LoginPage />} />
+                
+                <Route path="/" element={<PrivateRoute element={<ChatPage />} />} />
+                <Route path="/agents" element={<PrivateRoute element={<ConfigPage defaultTab="agents" />} />} />
+                <Route path="/tools" element={<PrivateRoute element={<ConfigPage defaultTab="tools" />} />} />
+                <Route path="/knowledge" element={<PrivateRoute element={<KnowledgePage />} />} />
+                <Route path="/database" element={<PrivateRoute element={<ConfigPage defaultTab="database" />} />} />
+                <Route path="/settings" element={<PrivateRoute element={<ConfigPage defaultTab="models" />} />} />
+                
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </div>
         </TooltipProvider>
       </AgentProvider>
     </AuthProvider>

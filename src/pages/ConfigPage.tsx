@@ -44,12 +44,12 @@ const ConfigPage: React.FC<ConfigPageProps> = ({ defaultTab = 'agents' }) => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-6 min-h-screen">
+    <div className="container mx-auto px-4 py-6 h-full">
       <Tabs
         defaultValue={getCurrentTab()}
         value={getCurrentTab()}
         onValueChange={handleTabChange}
-        className="w-full"
+        className="w-full h-full"
       >
         <TabsList className="mb-6">
           <TabsTrigger value="agents">Agents</TabsTrigger>
@@ -58,19 +58,19 @@ const ConfigPage: React.FC<ConfigPageProps> = ({ defaultTab = 'agents' }) => {
           <TabsTrigger value="models">Models</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="agents">
+        <TabsContent value="agents" className="h-full">
           <AgentConfig />
         </TabsContent>
         
-        <TabsContent value="tools">
+        <TabsContent value="tools" className="h-full">
           <ToolsConfig />
         </TabsContent>
         
-        <TabsContent value="database">
+        <TabsContent value="database" className="h-full">
           <DatabaseConfig />
         </TabsContent>
         
-        <TabsContent value="models">
+        <TabsContent value="models" className="h-full">
           <ModelConfig />
         </TabsContent>
       </Tabs>

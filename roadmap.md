@@ -10,9 +10,12 @@
 - [x] Make all vertical dividers adjustable
 - [x] Fix "Configuration" header and tabs repetition
 - [x] Move top menu to prevent duplication across tabs
+- [x] Add chat sidebar with conversation history
+- [x] Add resizable chat panels
+- [x] Add active agents display in chat interface
 
 ## Functionality Improvements
-- [ ] Fix tools section saving functionality
+- [x] Fix tools section saving functionality
 - [x] Add Knowledge section to store and manage documents
 - [x] Implement document upload and viewing functionality
 - [x] Create shared knowledge base between Agents and Knowledge sections

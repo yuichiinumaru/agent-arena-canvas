@@ -49,6 +49,11 @@
   * {
     @apply border-border;
   }
+  
+  html, body, #root {
+    @apply h-full;
+  }
+  
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
@@ -147,7 +152,7 @@ input, textarea, select {
 }
 
 /* Fix all background colors */
-.bg-white {
+.bg-white, .bg-gray-50, .bg-gray-100 {
   @apply bg-background !important;
 }
 
@@ -178,4 +183,31 @@ nav, header, footer {
 /* Make sure authentication pages are properly styled */
 .auth-page, .login-container, .signup-container {
   @apply bg-background text-foreground;
+}
+
+/* Fix tabs background color */
+.TabsList {
+  @apply bg-background;
+}
+
+/* Fix specific issues with white background */
+.TabsContent, 
+[data-state="active"], 
+[data-state="inactive"] {
+  @apply bg-background;
+}
+
+/* Fix resizable panels background */
+[data-panel-id] {
+  @apply bg-background;
+}
+
+/* Fix avatar background */
+.Avatar {
+  @apply bg-secondary;
+}
+
+/* Ensure that the entire app has the correct background */
+#root, main {
+  @apply bg-background;
 }

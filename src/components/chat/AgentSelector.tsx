@@ -32,7 +32,7 @@ const AgentSelector: React.FC<AgentSelectorProps> = ({
   const someSelected = selectedAgentIds.length > 0 && selectedAgentIds.length < agents.length;
 
   return (
-    <div className="border-t p-4 bg-gray-50">
+    <div className="border mt-2 p-4 bg-background rounded-md">
       <div className="mb-2 flex items-center">
         <h3 className="text-sm font-medium flex-1">Select Agents</h3>
         <div className="flex items-center space-x-2">
@@ -49,7 +49,7 @@ const AgentSelector: React.FC<AgentSelectorProps> = ({
       <ScrollArea className="h-[150px] overflow-y-auto">
         <div className="space-y-2">
           {agents.map(agent => (
-            <div key={agent.id} className="flex items-center space-x-3 p-2 rounded hover:bg-gray-100">
+            <div key={agent.id} className="flex items-center space-x-3 p-2 rounded hover:bg-secondary">
               <Checkbox 
                 id={`agent-${agent.id}`}
                 checked={selectedAgentIds.includes(agent.id)}
@@ -67,14 +67,14 @@ const AgentSelector: React.FC<AgentSelectorProps> = ({
                 
                 <div>
                   <div className="font-medium text-sm">{agent.name}</div>
-                  <div className="text-xs text-gray-500">{agent.model}</div>
+                  <div className="text-xs text-muted-foreground">{agent.model}</div>
                 </div>
               </label>
             </div>
           ))}
           
           {agents.length === 0 && (
-            <div className="p-4 text-center text-gray-500 text-sm">
+            <div className="p-4 text-center text-muted-foreground text-sm">
               No agents available. Create agents in the configuration page.
             </div>
           )}
