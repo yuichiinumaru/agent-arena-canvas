@@ -73,7 +73,6 @@ const ActiveAgentsBar: React.FC<ActiveAgentsBarProps> = ({ className }) => {
           
           if (message) {
             addMessageToConversation(currentConversationId, {
-              id: Date.now().toString(),
               conversationId: currentConversationId,
               content: message,
               sender: {

@@ -1,10 +1,10 @@
 
 import React from 'react';
 import { useAgent } from '@/contexts/AgentContext';
-import AgentList from './agent/AgentList';
-import BasicInformation from './agent/BasicInformation';
-import KnowledgeBase from './agent/KnowledgeBase';
-import ToolConfig from './agent/ToolConfig';
+import { AgentList } from './agent/AgentList';
+import { BasicInformation } from './agent/BasicInformation';
+import { KnowledgeBase } from './agent/KnowledgeBase';
+import { ToolConfig } from './agent/ToolConfig';
 
 const AgentConfig = () => {
   // We're creating a mock implementation since the read-only files can't be modified

@@ -23,17 +23,24 @@
 - [x] Implement document viewer with metadata display
 - [ ] Fix conversation storage and retrieval
 - [ ] Fix Supabase database integration for conversations
-- [ ] Fix useAgents/useAgent hook naming inconsistency
-- [ ] Refactor long component files into smaller, more manageable files
+- [ ] Create appropriate database tables for conversations
 
 ## Backend Integration
 - [x] Setup Supabase functions to create required tables
 - [ ] Implement proper error handling for database operations
 - [ ] Add migration capabilities for older data
-- [ ] Create appropriate database tables for conversations
+- [ ] Create Supabase RPC function for conversation operations
 
 ## Code Quality
-- [ ] Add proper TypeScript type definitions for all components
+- [x] Add proper TypeScript type definitions for all components
 - [ ] Implement consistent error handling across the application
 - [ ] Add unit tests for critical functionality
+- [ ] Refactor long component files into smaller, more manageable files
 - [ ] Fix build errors in configuration files
+
+## TODO Soon
+- [ ] Fix the conversations table in Supabase database
+- [ ] Create proper RLS policies for conversation data
+- [ ] Improve agent/conversation integration
+- [ ] Fix the AgentContext.tsx file (refactor into smaller parts)
+- [ ] Implement proper error handling for Supabase operations
