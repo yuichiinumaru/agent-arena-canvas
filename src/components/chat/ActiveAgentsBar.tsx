@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useAgent } from '@/contexts/AgentContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Plus, X } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import AgentSelector from './AgentSelector';
 import { Agent } from '@/types';
@@ -73,6 +73,7 @@ const ActiveAgentsBar: React.FC<ActiveAgentsBarProps> = ({ className }) => {
           
           if (message) {
             addMessageToConversation(currentConversationId, {
+              id: Date.now().toString(),
               conversationId: currentConversationId,
               content: message,
               sender: {

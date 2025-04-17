@@ -1,4 +1,3 @@
-
 // Main type definitions for the application
 
 export interface User {
@@ -53,7 +52,7 @@ export interface Message {
   sender: {
     id: string;
     name: string;
-    type: 'user' | 'agent';
+    type: 'user' | 'agent' | 'system';
     avatar?: string;
   };
   mentions: string[]; // Agent IDs mentioned with @

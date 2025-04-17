@@ -40,7 +40,8 @@ const ChatInterface: React.FC = () => {
   const handleSendMessage = () => {
     if (!input.trim() || !currentConversationId) return;
 
-    const newMessage: Omit<Message, 'id'> = {
+    const newMessage: Message = {
+      id: Date.now().toString(),  // Generate a temporary ID
       conversationId: currentConversationId,
       content: input,
       sender: {

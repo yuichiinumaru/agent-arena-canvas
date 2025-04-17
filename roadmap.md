@@ -21,8 +21,8 @@
 - [x] Create shared knowledge base between Agents and Knowledge sections
 - [x] Add two view modes for Knowledge section (list and thumbnail)
 - [x] Implement document viewer with metadata display
-- [x] Add Supabase database schema for conversations
 - [ ] Fix conversation storage and retrieval
+- [ ] Fix Supabase database integration for conversations
 - [ ] Fix useAgents/useAgent hook naming inconsistency
 - [ ] Refactor long component files into smaller, more manageable files
 
@@ -30,8 +30,10 @@
 - [x] Setup Supabase functions to create required tables
 - [ ] Implement proper error handling for database operations
 - [ ] Add migration capabilities for older data
+- [ ] Create appropriate database tables for conversations
 
 ## Code Quality
 - [ ] Add proper TypeScript type definitions for all components
 - [ ] Implement consistent error handling across the application
 - [ ] Add unit tests for critical functionality
+- [ ] Fix build errors in configuration files

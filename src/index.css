@@ -51,7 +51,7 @@
   }
   
   html, body, #root {
-    @apply h-full;
+    @apply h-full bg-background;
   }
   
   body {
@@ -208,6 +208,28 @@ nav, header, footer {
 }
 
 /* Ensure that the entire app has the correct background */
-#root, main {
+#root, main, div {
+  @apply bg-background;
+}
+
+/* Fix for specific whitespace issue */
+body > div,
+#root > div,
+main > div {
+  @apply bg-background;
+}
+
+/* Ensure dialogs, modals and sheets have the right background */
+[role="dialog"] {
+  @apply bg-background;
+}
+
+/* Fix tab panel styling */
+[role="tabpanel"] {
+  @apply bg-background;
+}
+
+/* Fix scroll areas */
+.ScrollArea {
   @apply bg-background;
 }
