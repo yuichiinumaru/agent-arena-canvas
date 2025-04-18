@@ -1,3 +1,4 @@
+
 // Main type definitions for the application
 
 export interface User {
@@ -45,6 +46,13 @@ export interface ToolParameter {
   default?: any;
 }
 
+export interface FileAttachment {
+  name: string;
+  path: string;
+  type: string;
+  size: number;
+}
+
 export interface Message {
   id: string;
   conversationId: string;
@@ -61,6 +69,7 @@ export interface Message {
   isTask: boolean;
   parentMessageId?: string;
   inReplyTo?: string;
+  fileAttachment?: FileAttachment;
 }
 
 export interface KnowledgeBase {

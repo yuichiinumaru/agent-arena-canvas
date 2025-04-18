@@ -25,12 +25,19 @@ import { KnowledgeItem } from '@/types';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { format } from 'date-fns';
 
+interface ExtendedKnowledgeItem extends KnowledgeItem {
+  createdAt: Date;
+  updatedAt: Date;
+  userName: string;
+  agentCount: number;
+}
+
 const KnowledgePage: React.FC = () => {
-  const [knowledgeItems, setKnowledgeItems] = useState<(KnowledgeItem & { createdAt: Date, updatedAt: Date, userName: string, agentCount: number })[]>([]);
+  const [knowledgeItems, setKnowledgeItems] = useState<ExtendedKnowledgeItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedItem, setSelectedItem] = useState<(KnowledgeItem & { createdAt: Date, updatedAt: Date, userName: string, agentCount: number }) | null>(null);
+  const [selectedItem, setSelectedItem] = useState<ExtendedKnowledgeItem | null>(null);
   
   const { user } = useAuth();
   const { toast } = useToast();
@@ -56,11 +63,11 @@ const KnowledgePage: React.FC = () => {
       }
       
       // Transform the data
-      const transformedItems = data.map(item => ({
+      const transformedItems: ExtendedKnowledgeItem[] = data.map(item => ({
         id: item.id,
         name: item.name,
         content: item.content || '',
-        type: item.type,
+        type: item.type as "text" | "file",
         size: item.file_size || 0,
         createdAt: new Date(item.created_at),
         updatedAt: new Date(item.updated_at),
@@ -114,11 +121,11 @@ const KnowledgePage: React.FC = () => {
           throw error;
         }
         
-        const newTransformedItem = {
+        const newTransformedItem: ExtendedKnowledgeItem = {
           id: data.id,
           name: data.name,
           content: data.content || '',
-          type: data.type,
+          type: data.type as "text" | "file",
           size: data.file_size || 0,
           createdAt: new Date(data.created_at),
           updatedAt: new Date(data.updated_at),
