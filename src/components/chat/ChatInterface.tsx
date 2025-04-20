@@ -1,7 +1,7 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAgent } from '@/contexts/AgentContext';
+import { useConversation } from '@/contexts/ConversationContext';
 import MessageItem from './MessageItem';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
@@ -20,12 +20,12 @@ const ChatInterface: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { uploadFile } = useFileUpload();
+  const { agents } = useAgent();
   const {
-    agents,
     conversations,
     currentConversationId,
     addMessageToConversation,
-  } = useAgent();
+  } = useConversation();
   const chatBottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 

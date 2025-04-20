@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { useAgent } from '@/contexts/AgentContext';
+import { useConversation } from '@/contexts/ConversationContext';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Plus, MessageSquare, Trash2 } from 'lucide-react';
@@ -17,7 +16,7 @@ const ConversationSidebar: React.FC<ConversationSidebarProps> = ({ className }) 
     currentConversationId,
     setCurrentConversationId,
     createNewConversation
-  } = useAgent();
+  } = useConversation();
 
   const handleConversationSelect = (id: string) => {
     setCurrentConversationId(id);

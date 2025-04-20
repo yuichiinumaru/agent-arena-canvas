@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -24,12 +23,18 @@ import {
 import { KnowledgeItem } from '@/types';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { format } from 'date-fns';
+import { useAgent } from '@/contexts/AgentContext';
+import PdfViewer from '@/components/shared/PdfViewer';
+import DocxViewer from '@/components/shared/DocxViewer';
+import XlsxViewer from '@/components/shared/XlsxViewer';
+import { chunkText } from '@/lib/chunkText';
 
 interface ExtendedKnowledgeItem extends KnowledgeItem {
   createdAt: Date;
   updatedAt: Date;
   userName: string;
   agentCount: number;
+  permittedAgentIds: string[];
 }
 
 const KnowledgePage: React.FC = () => {
@@ -38,16 +43,30 @@ const KnowledgePage: React.FC = () => {
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedItem, setSelectedItem] = useState<ExtendedKnowledgeItem | null>(null);
+  const [textChunks, setTextChunks] = useState<string[]>([]);
+  const [chunkIndex, setChunkIndex] = useState<number>(0);
   
   const { user } = useAuth();
   const { toast } = useToast();
   const { uploadFile, isUploading } = useFileUpload();
+  const { agents } = useAgent();
 
   useEffect(() => {
     if (user) {
       loadKnowledgeItems();
     }
   }, [user]);
+
+  useEffect(() => {
+    if (selectedItem?.type === 'text') {
+      const chunks = chunkText(selectedItem.content, 2000);
+      setTextChunks(chunks);
+      setChunkIndex(0);
+    } else {
+      setTextChunks([]);
+      setChunkIndex(0);
+    }
+  }, [selectedItem]);
 
   const loadKnowledgeItems = async () => {
     try {
@@ -62,7 +81,6 @@ const KnowledgePage: React.FC = () => {
         throw error;
       }
       
-      // Transform the data
       const transformedItems: ExtendedKnowledgeItem[] = data.map(item => ({
         id: item.id,
         name: item.name,
@@ -71,8 +89,9 @@ const KnowledgePage: React.FC = () => {
         size: item.file_size || 0,
         createdAt: new Date(item.created_at),
         updatedAt: new Date(item.updated_at),
-        userName: 'User', // Default value, would be updated in a real app
-        agentCount: 0, // Default value, would be calculated in a real app
+        userName: 'User',
+        agentCount: 0,
+        permittedAgentIds: item.permitted_agent_ids || [],
       }));
       
       setKnowledgeItems(transformedItems);
@@ -131,6 +150,7 @@ const KnowledgePage: React.FC = () => {
           updatedAt: new Date(data.updated_at),
           userName: user.name || 'User',
           agentCount: 0,
+          permittedAgentIds: [],
         };
         
         setKnowledgeItems([newTransformedItem, ...knowledgeItems]);
@@ -219,6 +239,22 @@ const KnowledgePage: React.FC = () => {
         description: error.message || 'Failed to download file',
         variant: 'destructive',
       });
+    }
+  };
+
+  const handleUpdatePermissions = async (agentIds: string[]) => {
+    if (!selectedItem) return;
+    try {
+      const { error } = await supabase
+        .from('knowledge_items')
+        .update({ permitted_agent_ids: agentIds })
+        .eq('id', selectedItem.id);
+      if (error) throw error;
+      setSelectedItem({ ...selectedItem, permittedAgentIds: agentIds });
+      setKnowledgeItems(knowledgeItems.map(item => item.id === selectedItem.id ? { ...item, permittedAgentIds: agentIds } : item));
+      toast({ title: 'Permissões atualizadas', description: 'Permissões alteradas com sucesso.' });
+    } catch (err: any) {
+      toast({ title: 'Erro ao atualizar permissões', description: err.message, variant: 'destructive' });
     }
   };
 
@@ -485,6 +521,30 @@ const KnowledgePage: React.FC = () => {
                   </div>
                 </div>
                 
+                <div className="mb-4 bg-card p-3 rounded-md">
+                  <p className="text-sm font-semibold">Permissões de Agentes</p>
+                  <div className="space-y-1">
+                    {agents.map(agent => (
+                      <label key={agent.id} className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          checked={selectedItem.permittedAgentIds.includes(agent.id)}
+                          onChange={() => {
+                            const newPermitted = selectedItem.permittedAgentIds.includes(agent.id)
+                              ? selectedItem.permittedAgentIds.filter(id => id !== agent.id)
+                              : [...selectedItem.permittedAgentIds, agent.id];
+                            handleUpdatePermissions(newPermitted);
+                          }}
+                        />
+                        <span>{agent.name}</span>
+                      </label>
+                    ))}
+                    <Button size="sm" onClick={() => handleUpdatePermissions(selectedItem.permittedAgentIds)}>
+                      Salvar Permissões
+                    </Button>
+                  </div>
+                </div>
+                
                 <div className="flex-1 bg-card p-3 rounded-md overflow-hidden">
                   <Tabs defaultValue="preview" className="h-full flex flex-col">
                     <TabsList className="mb-2">
@@ -493,11 +553,39 @@ const KnowledgePage: React.FC = () => {
                     </TabsList>
                     
                     <TabsContent value="preview" className="flex-1 overflow-hidden">
-                      {selectedItem.type === 'file' && selectedItem.content ? (
-                        <div className="h-full flex items-center justify-center bg-background/50 rounded">
-                          <p className="text-muted-foreground">File preview not available</p>
-                        </div>
-                      ) : (
+                      {selectedItem.type === 'file' && selectedItem.content ? (() => {
+                        const ext = selectedItem.name.split('.').pop()?.toLowerCase();
+                        const url = supabase.storage.from('agent-files').getPublicUrl(selectedItem.content).data.publicUrl;
+                        if (ext === 'pdf') {
+                          return <PdfViewer url={url} />;
+                        }
+                        if (ext === 'docx') {
+                          return <DocxViewer url={url} />;
+                        }
+                        if (['xlsx','xls'].includes(ext!)) {
+                          return <XlsxViewer url={url} />;
+                        }
+                        if (['png','jpg','jpeg','gif','bmp','svg'].includes(ext!)) {
+                          return <img src={url} alt={selectedItem.name} className="w-full h-full object-contain" />;
+                        }
+                        if (['mp4','mov','webm','ogg'].includes(ext!)) {
+                          return <video controls src={url} className="w-full h-full object-contain" />;
+                        }
+                        if (['pptx','ppt'].includes(ext!)) {
+                          return (
+                            <iframe
+                              src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(url)}`}
+                              title={selectedItem.name}
+                              className="w-full h-full"
+                            />
+                          );
+                        }
+                        return (
+                          <div className="h-full flex items-center justify-center bg-background/50 rounded">
+                            <p className="text-muted-foreground">File preview not available for this file type</p>
+                          </div>
+                        );
+                      })() : (
                         <ScrollArea className="h-full">
                           <div className="p-2 whitespace-pre-wrap">
                             {selectedItem.content || 'No content available'}
@@ -506,12 +594,23 @@ const KnowledgePage: React.FC = () => {
                       )}
                     </TabsContent>
                     
-                    <TabsContent value="text" className="flex-1 overflow-hidden">
-                      <ScrollArea className="h-full">
+                    <TabsContent value="text" className="flex-1 flex flex-col">
+                      <ScrollArea className="flex-1">
                         <div className="p-2 font-mono text-sm whitespace-pre-wrap">
-                          {selectedItem.content || 'No text content available'}
+                          {textChunks[chunkIndex] || 'No text content available'}
                         </div>
                       </ScrollArea>
+                      {textChunks.length > 1 && (
+                        <div className="flex justify-between items-center p-2">
+                          <Button size="sm" disabled={chunkIndex === 0} onClick={() => setChunkIndex(ci => ci - 1)}>
+                            Prev
+                          </Button>
+                          <span className="text-sm">Page {chunkIndex + 1} / {textChunks.length}</span>
+                          <Button size="sm" disabled={chunkIndex === textChunks.length - 1} onClick={() => setChunkIndex(ci => ci + 1)}>
+                            Next
+                          </Button>
+                        </div>
+                      )}
                     </TabsContent>
                   </Tabs>
                 </div>

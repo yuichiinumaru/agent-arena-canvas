@@ -5,42 +5,59 @@
 
 @layer base {
   :root {
+    /* Light theme variables */
     --font-sans: "Inter", sans-serif;
-
-    --background: 0 0% 7%; /* Black with slight tint */
-    --foreground: 0 0% 98%; /* Off-white for text */
-    
-    --muted: 0 0% 15%; /* Dark gray */
-    --muted-foreground: 0 0% 75%; /* Light gray */
-    
-    --accent: 0 75% 45%; /* Muted red */
-    --accent-foreground: 0 0% 98%; /* Off-white */
-    
-    --card: 0 0% 9%; /* Slightly lighter than background */
-    --card-foreground: 0 0% 98%; /* Off-white */
-    
-    --popover: 0 0% 9%; /* Same as card for consistency */
-    --popover-foreground: 0 0% 98%; /* Off-white */
-    
-    --input: 0 0% 12%; /* Slightly darker than card */
-    --ring: 0 75% 50%; /* Red */
-    
-    --border: 0 0% 20%; /* Dark gray for borders */
-    
-    --sidebar: 0 0% 5%; /* Darker than background */
-    --sidebar-foreground: 0 0% 90%; /* Light gray */
-    --sidebar-accent: 0 75% 45%; /* Muted red */
-    --sidebar-accent-foreground: 0 0% 98%; /* Off-white */
-
-    --primary: 0 85% 50%; /* Bright red */
-    --primary-foreground: 0 0% 98%; /* Off-white */
-    
-    --secondary: 0 0% 12%; /* Darker gray */
-    --secondary-foreground: 0 0% 98%; /* Off-white */
-    
-    --destructive: 0 84% 60%; /* Slightly brighter red */
-    --destructive-foreground: 0 0% 98%; /* Off-white */
-    
+    --background: 0 0% 98%;
+    --foreground: 0 0% 7%;
+    --muted: 0 0% 85%;
+    --muted-foreground: 0 0% 45%;
+    --accent: 240 100% 50%;
+    --accent-foreground: 0 0% 98%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 7%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 7%;
+    --input: 0 0% 100%;
+    --ring: 240 100% 50%;
+    --border: 0 0% 80%;
+    --sidebar: 0 0% 95%;
+    --sidebar-foreground: 0 0% 7%;
+    --sidebar-accent: 240 100% 50%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --primary: 240 100% 50%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 90%;
+    --secondary-foreground: 0 0% 7%;
+    --destructive: 0 100% 40%;
+    --destructive-foreground: 0 0% 98%;
+    --radius: 0.5rem;
+  }
+  .dark {
+    /* Dark theme overrides */
+    --font-sans: "Inter", sans-serif;
+    --background: 0 0% 7%;
+    --foreground: 0 0% 98%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 75%;
+    --accent: 0 75% 45%;
+    --accent-foreground: 0 0% 98%;
+    --card: 0 0% 9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 9%;
+    --popover-foreground: 0 0% 98%;
+    --input: 0 0% 12%;
+    --ring: 0 75% 50%;
+    --border: 0 0% 20%;
+    --sidebar: 0 0% 5%;
+    --sidebar-foreground: 0 0% 90%;
+    --sidebar-accent: 0 75% 45%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --primary: 0 85% 50%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 0 0% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
     --radius: 0.5rem;
   }
 }
